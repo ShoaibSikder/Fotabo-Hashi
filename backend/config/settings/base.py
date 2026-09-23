@@ -1,4 +1,5 @@
-﻿from pathlib import Path
+from datetime import timedelta
+from pathlib import Path
 import environ
 
 
@@ -21,7 +22,18 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "rest_framework",
+    'rest_framework',
+    'django_filters',
+    'rest_framework_simplejwt.token_blacklist',
+    'apps.common',
+    'apps.accounts',
+    'apps.profiles',
+    'apps.donors',
+    'apps.blood_requests',
+    'apps.leaderboard',
+    'apps.content',
+    'apps.administration',
+    'apps.audit',
 ]
 
 MIDDLEWARE = [
@@ -52,6 +64,8 @@ TEMPLATES = [{
 WSGI_APPLICATION = "config.wsgi.application"
 ASGI_APPLICATION = "config.asgi.application"
 
+AUTH_USER_MODEL = 'accounts.User'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -79,5 +93,31 @@ USE_TZ = True
 STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-
-
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
+    ],
+    'DEFAULT_PAGINATION_CLASS': (
+        'apps.common.pagination.StandardPagination'
+    ),
+    'PAGE_SIZE': 20,
+    'DEFAULT_FILTER_BACKENDS': [
+        'django_filters.rest_framework.DjangoFilterBackend',
+    ],
+    'EXCEPTION_HANDLER': (
+        'apps.common.exceptions.handlers.api_exception_handler'
+    ),
+}
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "UPDATE_LAST_LOGIN": True,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
