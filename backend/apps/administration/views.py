@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -28,6 +29,11 @@ class AuditAdminMixin:
         )
 
 
+@extend_schema(
+    tags=["Administration"],
+    request=OrganizationInformationAdminSerializer,
+    responses=OrganizationInformationAdminSerializer,
+)
 class OrganizationInformationAdminView(AuditAdminMixin, APIView):
     permission_classes = [IsAdminRole]
     resource_type = "OrganizationInformation"

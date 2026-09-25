@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -6,6 +7,11 @@ from .selectors import get_leaderboard_entries
 from .serializers import LeaderboardEntrySerializer
 
 
+@extend_schema(
+    tags=["Leaderboard"],
+    description="Leaderboard data source and ranking metric are pending specification.",
+    responses=LeaderboardEntrySerializer(many=True),
+)
 class LeaderboardListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 

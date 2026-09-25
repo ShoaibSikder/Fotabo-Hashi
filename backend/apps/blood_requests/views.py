@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
@@ -47,11 +48,16 @@ class BloodRequestDetailView(generics.RetrieveUpdateAPIView):
         )
 
 
-class BloodRequestActionView(APIView):
+class BloodRequestActionView(generics.GenericAPIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = BloodRequestSerializer
     action_service = None
     ownership_message = "You can only modify your own blood requests."
 
+    @extend_schema(
+        tags=["Blood Requests"],
+        responses=BloodRequestSerializer,
+    )
     def post(self, request, pk):
         blood_request = get_blood_request_queryset().filter(pk=pk).first()
         if blood_request is None:
@@ -62,11 +68,21 @@ class BloodRequestActionView(APIView):
         return Response(BloodRequestSerializer(blood_request).data)
 
 
+@extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)
 class BloodRequestFulfillView(BloodRequestActionView):
     action_service = staticmethod(fulfill_blood_request)
     ownership_message = "You can only fulfill your own blood requests."
 
+    @extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)
+    def post(self, request, pk):
+        return super().post(request, pk)
 
+
+@extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)
 class BloodRequestCancelView(BloodRequestActionView):
     action_service = staticmethod(cancel_blood_request)
     ownership_message = "You can only cancel your own blood requests."
+
+    @extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)
+    def post(self, request, pk):
+        return super().post(request, pk)

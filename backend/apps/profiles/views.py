@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,6 +8,12 @@ from .serializers import ProfileSerializer
 from .services import update_profile
 
 
+@extend_schema(
+    tags=["Profile"],
+    description="Operates only on the authenticated user's own profile.",
+    request=ProfileSerializer,
+    responses=ProfileSerializer,
+)
 class MyProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
