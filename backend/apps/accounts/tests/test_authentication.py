@@ -20,8 +20,12 @@ class AuthenticationTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertIn("access", response.data)
-        self.assertIn("refresh", response.data)
+        self.assertTrue(response.data["success"])
+        self.assertEqual(response.data["data"]["user"]["email"], "user@example.com")
+        self.assertNotIn("access", response.data)
+        self.assertNotIn("refresh", response.data)
+        self.assertIn("fh_access", response.cookies)
+        self.assertIn("fh_refresh", response.cookies)
 
     def test_me_requires_authentication(self):
         response = self.client.get(reverse("auth-me"))

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from apps.common.validators import validate_image_upload
 from apps.content.models import FoundingMember, Notice, OrganizationInformation, SliderItem
 
 
@@ -18,6 +19,12 @@ class NoticeAdminSerializer(serializers.ModelSerializer):
 
 
 class FoundingMemberAdminSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        validators=[validate_image_upload],
+    )
+
     class Meta:
         model = FoundingMember
         fields = ["id", "name", "designation", "image", "description", "display_order", "is_published", "created_at", "updated_at"]
@@ -25,6 +32,8 @@ class FoundingMemberAdminSerializer(serializers.ModelSerializer):
 
 
 class SliderItemAdminSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(validators=[validate_image_upload])
+
     class Meta:
         model = SliderItem
         fields = ["id", "title", "description", "image", "link_url", "display_order", "is_published", "created_at", "updated_at"]

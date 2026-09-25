@@ -13,9 +13,7 @@ class TestAdminContentAPI:
         self.user = User.objects.create_user(email="user@example.com", password="UserPassword123!", role=UserRole.USER)
 
     def authenticate(self, user):
-        password = "AdminPassword123!" if user == self.admin else "UserPassword123!"
-        response = self.client.post("/api/v1/auth/login/", {"email": user.email, "password": password}, format="json")
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {response.data['access']}")
+        self.client.force_authenticate(user=user)
 
     def test_unauthenticated_user_is_rejected(self):
         assert self.client.get("/api/v1/admin/content/notices/").status_code == 401

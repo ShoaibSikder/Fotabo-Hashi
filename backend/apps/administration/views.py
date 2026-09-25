@@ -7,9 +7,19 @@ from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
 from apps.audit.utils import get_client_ip
 from apps.content.models import FoundingMember, Notice, OrganizationInformation, SliderItem
+from infrastructure.cache.invalidation import (
+    invalidate_founding_members,
+    invalidate_public_notices,
+    invalidate_slider_items,
+)
 
 from .permissions import IsAdminRole
-from .serializers import FoundingMemberAdminSerializer, NoticeAdminSerializer, OrganizationInformationAdminSerializer, SliderItemAdminSerializer
+from .serializers import (
+    FoundingMemberAdminSerializer,
+    NoticeAdminSerializer,
+    OrganizationInformationAdminSerializer,
+    SliderItemAdminSerializer,
+)
 from .services import create_or_update_organization_information
 
 
@@ -41,41 +51,79 @@ class OrganizationInformationAdminView(AuditAdminMixin, APIView):
     def get(self, request):
         organization = OrganizationInformation.objects.first()
         if organization is None:
-            return Response({"detail": "Organization information has not been configured."}, status=status.HTTP_404_NOT_FOUND)
+            return Response(
+                {"detail": "Organization information has not been configured."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
         return Response(OrganizationInformationAdminSerializer(organization).data)
 
     def _upsert(self, request, *, partial):
         existing = OrganizationInformation.objects.first()
-        serializer = OrganizationInformationAdminSerializer(existing, data=request.data, partial=partial)
+        serializer = OrganizationInformationAdminSerializer(
+            existing, data=request.data, partial=partial
+        )
         serializer.is_valid(raise_exception=True)
-        organization = create_or_update_organization_information(data=serializer.validated_data)
+        organization = create_or_update_organization_information(
+            data=serializer.validated_data
+        )
         self.audit(
             action=AuditAction.CREATE if existing is None else AuditAction.UPDATE,
             instance=organization,
-            description="Administrator created organization information." if existing is None else "Administrator updated organization information.",
+            description=(
+                "Administrator created organization information."
+                if existing is None
+                else "Administrator updated organization information."
+            ),
             metadata={"name": organization.name},
         )
         return Response(OrganizationInformationAdminSerializer(organization).data)
 
-    def post(self, request): return self._upsert(request, partial=False)
-    def put(self, request): return self._upsert(request, partial=False)
-    def patch(self, request): return self._upsert(request, partial=True)
+    def post(self, request):
+        return self._upsert(request, partial=False)
+
+    def put(self, request):
+        return self._upsert(request, partial=False)
+
+    def patch(self, request):
+        return self._upsert(request, partial=True)
 
 
 class AuditedContentMixin(AuditAdminMixin):
     label = "content"
+    cache_invalidator = None
+
+    def invalidate_public_cache(self):
+        if self.cache_invalidator is not None:
+            self.cache_invalidator()
 
     def perform_create(self, serializer):
         instance = serializer.save()
-        self.audit(action=AuditAction.CREATE, instance=instance, description=f"Administrator created a {self.label}.", metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))})
+        self.audit(
+            action=AuditAction.CREATE,
+            instance=instance,
+            description=f"Administrator created a {self.label}.",
+            metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))},
+        )
+        self.invalidate_public_cache()
 
     def perform_update(self, serializer):
         instance = serializer.save()
-        self.audit(action=AuditAction.UPDATE, instance=instance, description=f"Administrator updated a {self.label}.")
+        self.audit(
+            action=AuditAction.UPDATE,
+            instance=instance,
+            description=f"Administrator updated a {self.label}.",
+        )
+        self.invalidate_public_cache()
 
     def perform_destroy(self, instance):
-        self.audit(action=AuditAction.DELETE, instance=instance, description=f"Administrator deleted a {self.label}.", metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))})
+        self.audit(
+            action=AuditAction.DELETE,
+            instance=instance,
+            description=f"Administrator deleted a {self.label}.",
+            metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))},
+        )
         instance.delete()
+        self.invalidate_public_cache()
 
 
 class NoticeAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView):
@@ -84,6 +132,7 @@ class NoticeAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView)
     serializer_class = NoticeAdminSerializer
     resource_type = "Notice"
     label = "notice"
+    cache_invalidator = staticmethod(invalidate_public_notices)
 
 
 class NoticeAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -92,6 +141,7 @@ class NoticeAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyA
     serializer_class = NoticeAdminSerializer
     resource_type = "Notice"
     label = "notice"
+    cache_invalidator = staticmethod(invalidate_public_notices)
 
 
 class FoundingMemberAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView):
@@ -100,6 +150,7 @@ class FoundingMemberAdminListCreateView(AuditedContentMixin, generics.ListCreate
     serializer_class = FoundingMemberAdminSerializer
     resource_type = "FoundingMember"
     label = "founding member"
+    cache_invalidator = staticmethod(invalidate_founding_members)
 
 
 class FoundingMemberAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -108,6 +159,7 @@ class FoundingMemberAdminDetailView(AuditedContentMixin, generics.RetrieveUpdate
     serializer_class = FoundingMemberAdminSerializer
     resource_type = "FoundingMember"
     label = "founding member"
+    cache_invalidator = staticmethod(invalidate_founding_members)
 
 
 class SliderItemAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView):
@@ -116,6 +168,7 @@ class SliderItemAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIV
     serializer_class = SliderItemAdminSerializer
     resource_type = "SliderItem"
     label = "slider item"
+    cache_invalidator = staticmethod(invalidate_slider_items)
 
 
 class SliderItemAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
@@ -124,3 +177,4 @@ class SliderItemAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDest
     serializer_class = SliderItemAdminSerializer
     resource_type = "SliderItem"
     label = "slider item"
+    cache_invalidator = staticmethod(invalidate_slider_items)

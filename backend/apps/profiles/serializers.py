@@ -1,9 +1,16 @@
 from rest_framework import serializers
 
+from apps.common.validators import validate_image_upload
+
 from .models import Profile
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_image = serializers.ImageField(
+        required=False,
+        allow_null=True,
+        validators=[validate_image_upload],
+    )
     email = serializers.EmailField(source="user.email", read_only=True)
     role = serializers.CharField(source="user.role", read_only=True)
 

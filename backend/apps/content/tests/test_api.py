@@ -20,21 +20,21 @@ class TestPublicContentAPI:
         Notice.objects.create(title="Public Notice", content="Public information.", is_published=True)
         response = self.client.get("/api/v1/content/notices/")
         assert response.status_code == 200
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["title"] == "Public Notice"
+        assert len(response.data) == 1
+        assert response.data[0]["title"] == "Public Notice"
 
     def test_only_published_founding_members_are_visible(self):
         FoundingMember.objects.create(name="Published Member", is_published=True)
         FoundingMember.objects.create(name="Hidden Member", is_published=False)
         response = self.client.get("/api/v1/content/founding-members/")
         assert response.status_code == 200
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["name"] == "Published Member"
+        assert len(response.data) == 1
+        assert response.data[0]["name"] == "Published Member"
 
     def test_slider_returns_only_published_items(self):
         SliderItem.objects.create(title="Visible Slide", image="slider/visible.jpg", is_published=True)
         SliderItem.objects.create(title="Hidden Slide", image="slider/hidden.jpg", is_published=False)
         response = self.client.get("/api/v1/content/slider/")
         assert response.status_code == 200
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["title"] == "Visible Slide"
+        assert len(response.data) == 1
+        assert response.data[0]["title"] == "Visible Slide"

@@ -22,8 +22,7 @@ class TestAdminContentAuditing:
     def setup_method(self):
         self.client = APIClient()
         self.admin = User.objects.create_user(email="admin@example.com", password="AdminPassword123!", role=UserRole.ADMIN)
-        login = self.client.post("/api/v1/auth/login/", {"email": self.admin.email, "password": "AdminPassword123!"}, format="json")
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {login.data['access']}")
+        self.client.force_authenticate(user=self.admin)
 
     def test_notice_mutations_are_audited(self):
         create = self.client.post("/api/v1/admin/content/notices/", {"title": "Test", "content": "Initial"}, format="json")

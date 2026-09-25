@@ -23,7 +23,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -48,7 +48,7 @@ paths:
               $ref: '#/components/schemas/FoundingMemberAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '201':
           content:
@@ -68,7 +68,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -99,7 +99,7 @@ paths:
               $ref: '#/components/schemas/FoundingMemberAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -129,7 +129,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedFoundingMemberAdmin'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -148,7 +148,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '204':
           description: No response body
@@ -171,7 +171,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -196,7 +196,7 @@ paths:
               $ref: '#/components/schemas/NoticeAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '201':
           content:
@@ -216,7 +216,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -247,7 +247,7 @@ paths:
               $ref: '#/components/schemas/NoticeAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -277,7 +277,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedNoticeAdmin'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -296,7 +296,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '204':
           description: No response body
@@ -306,7 +306,7 @@ paths:
       tags:
       - Administration
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -331,7 +331,7 @@ paths:
               $ref: '#/components/schemas/OrganizationInformationAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -356,7 +356,7 @@ paths:
               $ref: '#/components/schemas/OrganizationInformationAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -380,7 +380,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedOrganizationInformationAdmin'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -407,7 +407,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -432,7 +432,7 @@ paths:
               $ref: '#/components/schemas/SliderItemAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '201':
           content:
@@ -452,7 +452,7 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -483,7 +483,7 @@ paths:
               $ref: '#/components/schemas/SliderItemAdmin'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -513,7 +513,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedSliderItemAdmin'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -532,10 +532,25 @@ paths:
       tags:
       - admin
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '204':
           description: No response body
+  /api/v1/auth/csrf/:
+    get:
+      operationId: auth_csrf_retrieve
+      tags:
+      - Authentication
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/auth/login/:
     post:
       operationId: auth_login_create
@@ -565,13 +580,28 @@ paths:
               schema:
                 $ref: '#/components/schemas/Login'
           description: ''
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - Authentication
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/auth/me/:
     get:
       operationId: auth_me_retrieve
       tags:
       - Authentication
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -583,29 +613,17 @@ paths:
   /api/v1/auth/refresh/:
     post:
       operationId: auth_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
       tags:
-      - auth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/TokenRefresh'
-        required: true
+      - Authentication
+      security:
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenRefresh'
+                type: object
+                additionalProperties: {}
           description: ''
   /api/v1/blood-requests/:
     get:
@@ -664,7 +682,7 @@ paths:
       tags:
       - blood-requests
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -689,7 +707,7 @@ paths:
               $ref: '#/components/schemas/BloodRequest'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '201':
           content:
@@ -709,7 +727,7 @@ paths:
       tags:
       - blood-requests
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -740,7 +758,7 @@ paths:
               $ref: '#/components/schemas/BloodRequest'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -770,7 +788,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedBloodRequest'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -802,7 +820,7 @@ paths:
               $ref: '#/components/schemas/BloodRequest'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -834,7 +852,7 @@ paths:
               $ref: '#/components/schemas/BloodRequest'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -845,66 +863,41 @@ paths:
   /api/v1/content/founding-members/:
     get:
       operationId: content_founding_members_list
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
-      - content
+      - Public Content
       security:
-      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedFoundingMemberList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/FoundingMember'
           description: ''
   /api/v1/content/notices/:
     get:
       operationId: content_notices_list
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
-      - content
+      - Public Content
       security:
-      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedNoticeList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notice'
           description: ''
   /api/v1/content/organization/:
     get:
       operationId: content_organization_retrieve
       tags:
-      - content
+      - Public Content
       security:
-      - jwtAuth: []
       - {}
       responses:
         '200':
@@ -916,30 +909,18 @@ paths:
   /api/v1/content/slider/:
     get:
       operationId: content_slider_list
-      parameters:
-      - name: page
-        required: false
-        in: query
-        description: A page number within the paginated result set.
-        schema:
-          type: integer
-      - name: page_size
-        required: false
-        in: query
-        description: Number of results to return per page.
-        schema:
-          type: integer
       tags:
-      - content
+      - Public Content
       security:
-      - jwtAuth: []
       - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSliderItemList'
+                type: array
+                items:
+                  $ref: '#/components/schemas/SliderItem'
           description: ''
   /api/v1/donors/:
     get:
@@ -990,7 +971,7 @@ paths:
       tags:
       - donors
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -1020,7 +1001,7 @@ paths:
       tags:
       - Leaderboard
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -1037,7 +1018,7 @@ paths:
       tags:
       - Profile
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -1063,7 +1044,7 @@ paths:
               $ref: '#/components/schemas/Profile'
         required: true
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -1088,7 +1069,7 @@ paths:
             schema:
               $ref: '#/components/schemas/PatchedProfile'
       security:
-      - jwtAuth: []
+      - BearerJWT: []
       responses:
         '200':
           content:
@@ -1481,29 +1462,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/FoundingMemberAdmin'
-    PaginatedFoundingMemberList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/FoundingMember'
     PaginatedNoticeAdminList:
       type: object
       required:
@@ -1527,29 +1485,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NoticeAdmin'
-    PaginatedNoticeList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notice'
     PaginatedSliderItemAdminList:
       type: object
       required:
@@ -1573,29 +1508,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/SliderItemAdmin'
-    PaginatedSliderItemList:
-      type: object
-      required:
-      - count
-      - results
-      properties:
-        count:
-          type: integer
-          example: 123
-        next:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=4
-        previous:
-          type: string
-          nullable: true
-          format: uri
-          example: http://api.example.org/accounts/?page=2
-        results:
-          type: array
-          items:
-            $ref: '#/components/schemas/SliderItem'
     PatchedBloodRequest:
       type: object
       properties:
@@ -1915,23 +1827,12 @@ components:
         * `ACTIVE` - Active
         * `FULFILLED` - Fulfilled
         * `CANCELLED` - Cancelled
-    TokenRefresh:
-      type: object
-      properties:
-        access:
-          type: string
-          readOnly: true
-        refresh:
-          type: string
-      required:
-      - access
-      - refresh
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-    jwtAuth:
+    BearerJWT:
       type: http
       scheme: bearer
       bearerFormat: JWT
