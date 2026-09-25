@@ -39,6 +39,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "apps.common.middleware.request_id.RequestIDMiddleware",
     'corsheaders.middleware.CorsMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -47,6 +48,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "infrastructure.database.rls.middleware.ClearRLSContextMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -121,15 +123,44 @@ CACHES = {
     },
 }
 MAX_UPLOAD_SIZE_MB = env.int('MAX_UPLOAD_SIZE_MB', default=5)
-FILE_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024
-DATA_UPLOAD_MAX_MEMORY_SIZE = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+FILE_UPLOAD_MAX_MEMORY_SIZE = env.int(
+    "FILE_UPLOAD_MAX_MEMORY_SIZE",
+    default=MAX_UPLOAD_SIZE_MB * 1024 * 1024,
+)
+DATA_UPLOAD_MAX_MEMORY_SIZE = env.int(
+    "DATA_UPLOAD_MAX_MEMORY_SIZE",
+    default=10 * 1024 * 1024,
+)
 
 STATIC_URL = 'static/'
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+STORAGE_BACKEND = env("STORAGE_BACKEND", default="local").lower()
+SUPABASE_URL = env("SUPABASE_URL", default="")
+SUPABASE_STORAGE_BUCKET = env(
+    "SUPABASE_STORAGE_BUCKET",
+    default="fotabo-hashi-media",
+)
+SUPABASE_S3_ENDPOINT = env("SUPABASE_S3_ENDPOINT", default="")
+SUPABASE_S3_REGION = env("SUPABASE_S3_REGION", default="")
+SUPABASE_ACCESS_KEY_ID = env("SUPABASE_ACCESS_KEY_ID", default="")
+SUPABASE_SECRET_ACCESS_KEY = env("SUPABASE_SECRET_ACCESS_KEY", default="")
+STORAGES = {
+    "default": {
+        "BACKEND": "infrastructure.storage.backends.LocalMediaStorage"
+        if STORAGE_BACKEND == "local"
+        else "infrastructure.storage.backends.SupabaseStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+    },
+}
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': [
+        'apps.common.renderers.StandardJSONRenderer',
+    ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'apps.accounts.authentication.CookieOrBearerJWTAuthentication',
     ],
@@ -148,6 +179,9 @@ REST_FRAMEWORK = {
         'anon': '100/hour',
         'user': '1000/hour',
         'login': '10/minute',
+        'refresh': '30/minute',
+        'blood_request_create': '30/hour',
+        'blood_request_action': '60/hour',
     },
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
     'DEFAULT_FILTER_BACKENDS': [

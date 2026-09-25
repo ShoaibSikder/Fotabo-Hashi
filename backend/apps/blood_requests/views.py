@@ -13,12 +13,18 @@ from .services import (
     fulfill_blood_request,
     update_blood_request,
 )
+from .throttles import BloodRequestActionThrottle, BloodRequestCreateThrottle
 
 
 class BloodRequestListCreateView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     serializer_class = BloodRequestSerializer
     filterset_class = BloodRequestFilter
+
+    def get_throttles(self):
+        if self.request.method == "POST":
+            return [BloodRequestCreateThrottle()]
+        return super().get_throttles()
 
     def get_queryset(self):
         return get_blood_request_queryset()
@@ -53,6 +59,7 @@ class BloodRequestActionView(generics.GenericAPIView):
     serializer_class = BloodRequestSerializer
     action_service = None
     ownership_message = "You can only modify your own blood requests."
+    throttle_classes = [BloodRequestActionThrottle]
 
     @extend_schema(
         tags=["Blood Requests"],

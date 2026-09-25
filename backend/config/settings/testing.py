@@ -1,6 +1,7 @@
 ﻿from .base import *
 
 DEBUG = False
+RLS_TEST_MODE = True
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]
 
 CACHES = {

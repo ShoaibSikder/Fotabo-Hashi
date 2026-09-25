@@ -14,6 +14,7 @@ drf-spectacular>=0.30,<1.0
 # Security and uploads
 django-cors-headers>=4.9,<5.0
 Pillow>=11.0,<13.0
+django-storages[s3]>=1.14,<2.0
 
 # Caching and background tasks
 redis>=5.0,<7.0

@@ -80,11 +80,11 @@ class TestMyProfileAPI:
             "/api/v1/profile/me/", {"blood_group": "INVALID"}, format="json"
         )
         assert response.status_code == 400
-        assert "blood_group" in response.data
+        assert "blood_group" in response.data["error"]["details"]
 
     def test_empty_name_is_rejected(self):
         response = self.client.patch(
             "/api/v1/profile/me/", {"name": "   "}, format="json"
         )
         assert response.status_code == 400
-        assert "name" in response.data
+        assert "name" in response.data["error"]["details"]

@@ -12,10 +12,11 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from .cookies import clear_auth_cookies, set_auth_cookies
 from .authentication import CookieOrBearerJWTAuthentication
 from .serializers import LoginSerializer
-from .throttles import LoginRateThrottle
+from .throttles import LoginRateThrottle, RefreshRateThrottle
 from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
 from apps.audit.utils import get_client_ip
+from infrastructure.database.rls.context import set_login_context
 
 
 def session_user_data(user):
@@ -41,6 +42,8 @@ class LoginView(TokenObtainPairView):
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
+        request._rls_context_active = True
+        set_login_context(str(request.data.get("email", "")))
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         tokens = serializer.validated_data
@@ -72,22 +75,19 @@ class LoginView(TokenObtainPairView):
 class RefreshView(APIView):
     authentication_classes = []
     permission_classes = [permissions.AllowAny]
+    throttle_classes = [RefreshRateThrottle]
 
     def post(self, request):
         CookieOrBearerJWTAuthentication().enforce_csrf(request)
         refresh_token = request.COOKIES.get(settings.JWT_REFRESH_COOKIE_NAME)
         if not refresh_token:
-            return Response(
-                {"detail": "Refresh cookie is required."},
-                status=status.HTTP_401_UNAUTHORIZED,
-        )
+            raise exceptions.NotAuthenticated("Refresh cookie is required.")
         serializer = TokenRefreshSerializer(data={"refresh": refresh_token})
         try:
             serializer.is_valid(raise_exception=True)
-        except TokenError as exc:
-            return Response(
-                {"detail": "Invalid or expired refresh token."},
-                status=status.HTTP_401_UNAUTHORIZED,
+        except TokenError:
+            raise exceptions.AuthenticationFailed(
+                "Invalid or expired refresh token."
             )
         tokens = serializer.validated_data
         response = Response({"success": True})

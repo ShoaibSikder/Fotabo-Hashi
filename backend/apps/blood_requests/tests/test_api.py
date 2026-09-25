@@ -45,7 +45,7 @@ class TestBloodRequestAPI:
         self.create_request()
         response = self.client.get("/api/v1/blood-requests/")
         assert response.status_code == 200
-        assert response.data["count"] == 1
+        assert response.data["data"]["count"] == 1
 
     def test_user_can_view_request(self):
         blood_request = self.create_request()
@@ -77,20 +77,20 @@ class TestBloodRequestAPI:
     def test_required_units_must_be_positive(self):
         response = self.client.post("/api/v1/blood-requests/", {"blood_group": "O+", "required_units": 0, "location": "Dhaka"}, format="json")
         assert response.status_code == 400
-        assert "required_units" in response.data
+        assert "required_units" in response.data["error"]["details"]
 
     def test_invalid_blood_group_is_rejected(self):
         response = self.client.post("/api/v1/blood-requests/", {"blood_group": "INVALID", "required_units": 1, "location": "Dhaka"}, format="json")
         assert response.status_code == 400
-        assert "blood_group" in response.data
+        assert "blood_group" in response.data["error"]["details"]
 
     def test_filter_by_blood_group(self):
         self.create_request(blood_group="O+")
         self.create_request(blood_group="A+")
         response = self.client.get("/api/v1/blood-requests/", {"blood_group": "O+"})
         assert response.status_code == 200
-        assert response.data["count"] == 1
-        assert response.data["results"][0]["blood_group"] == "O+"
+        assert response.data["data"]["count"] == 1
+        assert response.data["data"]["results"][0]["blood_group"] == "O+"
     def test_owner_can_fulfill_active_request(self):
         blood_request = self.create_request()
         response = self.client.post(f"/api/v1/blood-requests/{blood_request.id}/fulfill/")

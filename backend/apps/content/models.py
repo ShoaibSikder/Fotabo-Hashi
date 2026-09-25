@@ -1,5 +1,10 @@
 from django.db import models
 
+from infrastructure.storage.paths import (
+    founding_member_upload_path,
+    slider_upload_path,
+)
+
 
 class OrganizationInformation(models.Model):
     name = models.CharField(max_length=200)
@@ -32,7 +37,11 @@ class Notice(models.Model):
 class FoundingMember(models.Model):
     name = models.CharField(max_length=150)
     designation = models.CharField(max_length=150, blank=True)
-    image = models.ImageField(upload_to="founding-members/", blank=True, null=True)
+    image = models.ImageField(
+        upload_to=founding_member_upload_path,
+        blank=True,
+        null=True,
+    )
     description = models.TextField(blank=True)
     display_order = models.PositiveIntegerField(default=0)
     is_published = models.BooleanField(default=True)
@@ -49,7 +58,7 @@ class FoundingMember(models.Model):
 class SliderItem(models.Model):
     title = models.CharField(max_length=255, blank=True)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to="slider/")
+    image = models.ImageField(upload_to=slider_upload_path)
     link_url = models.URLField(blank=True)
     display_order = models.PositiveIntegerField(default=0)
     is_published = models.BooleanField(default=True)

@@ -3,6 +3,9 @@ from drf_spectacular.extensions import OpenApiAuthenticationExtension
 from rest_framework import exceptions
 from rest_framework.authentication import CSRFCheck
 from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework_simplejwt.settings import api_settings
+
+from infrastructure.database.rls.context import set_rls_context
 
 
 class CookieOrBearerJWTAuthentication(JWTAuthentication):
@@ -16,17 +19,43 @@ class CookieOrBearerJWTAuthentication(JWTAuthentication):
             raise exceptions.PermissionDenied(f"CSRF Failed: {reason}")
 
     def authenticate(self, request):
-        header_authentication = super().authenticate(request)
-        if header_authentication is not None:
-            return header_authentication
+        request._rls_context_active = True
+        header = self.get_header(request)
+        raw_token = self.get_raw_token(header) if header is not None else None
+        using_cookie = raw_token is None
 
-        raw_token = request.COOKIES.get(settings.JWT_ACCESS_COOKIE_NAME)
         if raw_token is None:
+            raw_token = request.COOKIES.get(settings.JWT_ACCESS_COOKIE_NAME)
+        if raw_token is None:
+            set_rls_context(
+                user_id=None,
+                is_admin=False,
+                is_authenticated=False,
+            )
             return None
 
         validated_token = self.get_validated_token(raw_token)
-        self.enforce_csrf(request)
-        return self.get_user(validated_token), validated_token
+        user_id = validated_token.get(api_settings.USER_ID_CLAIM)
+        if user_id is None:
+            raise exceptions.AuthenticationFailed("Token contained no user identity.")
+
+        # This provisional context permits JWTAuthentication.get_user() to
+        # retrieve only the identity encoded in the signed token.
+        set_rls_context(
+            user_id=int(user_id),
+            is_admin=False,
+            is_authenticated=True,
+        )
+        user = self.get_user(validated_token)
+        set_rls_context(
+            user_id=user.pk,
+            is_admin=user.role == "ADMIN",
+            is_authenticated=True,
+        )
+
+        if using_cookie:
+            self.enforce_csrf(request)
+        return user, validated_token
 
 
 class CookieOrBearerJWTAuthenticationScheme(OpenApiAuthenticationExtension):

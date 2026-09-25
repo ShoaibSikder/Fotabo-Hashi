@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from infrastructure.storage.paths import profile_upload_path
+
 
 class BloodGroup(models.TextChoices):
     A_POSITIVE = "A+", "A+"
@@ -20,7 +22,11 @@ class Profile(models.Model):
         related_name="profile",
     )
     name = models.CharField(max_length=150)
-    profile_image = models.ImageField(upload_to="profiles/", blank=True, null=True)
+    profile_image = models.ImageField(
+        upload_to=profile_upload_path,
+        blank=True,
+        null=True,
+    )
     phone = models.CharField(max_length=30, blank=True)
     blood_group = models.CharField(max_length=3, choices=BloodGroup.choices, blank=True)
     location = models.CharField(max_length=255, blank=True)
@@ -35,6 +41,10 @@ class Profile(models.Model):
             models.Index(
                 fields=["is_available_for_donation"],
                 name="profile_donor_available_idx",
+            ),
+            models.Index(
+                fields=["is_available_for_donation", "blood_group"],
+                name="profile_donor_group_idx",
             ),
         ]
 

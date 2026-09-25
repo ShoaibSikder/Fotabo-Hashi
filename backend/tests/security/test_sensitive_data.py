@@ -16,5 +16,5 @@ def test_donor_search_excludes_private_fields():
     profile.save()
     client = APIClient()
     client.force_authenticate(user=viewer)
-    donor_data = client.get("/api/v1/donors/").data["results"][0]
+    donor_data = client.get("/api/v1/donors/").data["data"]["results"][0]
     assert not {"email", "phone", "role", "user"}.intersection(donor_data)

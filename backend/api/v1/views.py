@@ -2,6 +2,8 @@ from drf_spectacular.utils import OpenApiTypes, extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from apps.common.responses.api import success_response
+
 
 @extend_schema(
     tags=["Health"],
@@ -14,4 +16,6 @@ class HealthCheckView(APIView):
     permission_classes = []
 
     def get(self, request):
-        return Response({"status": "ok", "service": "fotabo-hashi-api", "version": "v1"})
+        return success_response(
+            data={"status": "ok", "service": "fotabo-hashi-api", "version": "v1"}
+        )
