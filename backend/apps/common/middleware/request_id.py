@@ -1,4 +1,9 @@
+import logging
 import uuid
+
+import sentry_sdk
+
+logger = logging.getLogger(__name__)
 
 
 class RequestIDMiddleware:
@@ -11,6 +16,16 @@ class RequestIDMiddleware:
     def __call__(self, request):
         request_id = request.META.get(self.header_name) or str(uuid.uuid4())
         request.request_id = request_id
+        sentry_sdk.set_tag("request_id", request_id)
         response = self.get_response(request)
         response[self.response_header] = request_id
+        logger.info(
+            "Request completed",
+            extra={
+                "request_id": request_id,
+                "method": request.method,
+                "path": request.path,
+                "status_code": response.status_code,
+            },
+        )
         return response

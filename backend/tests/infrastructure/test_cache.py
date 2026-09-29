@@ -1,6 +1,11 @@
 import pytest
 
-from infrastructure.cache.services import check_cache_connection, delete_cached, get_cached, set_cached
+from infrastructure.cache.services import (
+    check_cache_connection,
+    delete_cached,
+    get_cached,
+    set_cached,
+)
 
 
 @pytest.mark.django_db

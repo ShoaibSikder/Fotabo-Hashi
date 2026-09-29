@@ -7,8 +7,12 @@ from apps.profiles.models import BloodGroup
 
 @pytest.mark.django_db
 def test_donor_search_excludes_private_fields():
-    viewer = User.objects.create_user(email="viewer@example.com", password="StrongPassword123!")
-    donor = User.objects.create_user(email="donor@example.com", password="StrongPassword123!")
+    viewer = User.objects.create_user(
+        email="viewer@example.com", password="StrongPassword123!"
+    )
+    donor = User.objects.create_user(
+        email="donor@example.com", password="StrongPassword123!"
+    )
     profile = donor.profile
     profile.blood_group = BloodGroup.O_POSITIVE
     profile.phone = "01700000000"

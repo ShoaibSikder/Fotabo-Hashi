@@ -1,0 +1,16 @@
+[tool.ruff]
+target-version = "py313"
+extend-exclude = [".venv", "migrations"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+# Black intentionally leaves some long strings unwrapped; keep the tools aligned.
+ignore = ["E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# Django settings modules conventionally import the base settings namespace.
+"config/settings/*.py" = ["F403"]
+
+[tool.black]
+target-version = ["py313"]
+extend-exclude = "migrations"

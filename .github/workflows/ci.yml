@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: fotabo_hashi_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd="pg_isready -U postgres -d fotabo_hashi_test"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+    env:
+      DJANGO_SETTINGS_MODULE: config.settings.testing
+      DJANGO_SECRET_KEY: test-only-secret
+      DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1
+      DATABASE_NAME: fotabo_hashi_test
+      DATABASE_USER: postgres
+      DATABASE_PASSWORD: postgres
+      DATABASE_HOST: 127.0.0.1
+      DATABASE_PORT: "5432"
+      REDIS_URL: redis://127.0.0.1:6379/1
+      CELERY_BROKER_URL: redis://127.0.0.1:6379/2
+      CELERY_RESULT_BACKEND: redis://127.0.0.1:6379/3
+      SENTRY_DSN: ""
+      STORAGE_BACKEND: local
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ruff
+        run: ruff check .
+      - name: Black
+        run: black --check .
+      - name: Django checks
+        run: python manage.py check
+      - name: Tests
+        run: pytest
+      - name: OpenAPI validation
+        run: |
+          python manage.py spectacular --file schema.yml
+          python manage.py spectacular --validate

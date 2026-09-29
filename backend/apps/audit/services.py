@@ -1,8 +1,19 @@
-from .models import AuditLog
 from infrastructure.database.rls.context import temporary_admin_context
 
+from .models import AuditLog
 
-def create_audit_log(*, actor=None, action, resource_type, resource_id=None, description="", ip_address=None, user_agent="", metadata=None):
+
+def create_audit_log(
+    *,
+    actor=None,
+    action,
+    resource_type,
+    resource_id=None,
+    description="",
+    ip_address=None,
+    user_agent="",
+    metadata=None,
+):
     # Django's INSERT ... RETURNING requires SELECT visibility.  This narrowly
     # scoped server-side context lets the trusted audit service write records
     # without granting ordinary users any audit-log read policy.

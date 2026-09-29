@@ -12,7 +12,13 @@ class AuditAction(models.TextChoices):
 
 
 class AuditLog(models.Model):
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name="audit_logs")
+    actor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="audit_logs",
+    )
     action = models.CharField(max_length=20, choices=AuditAction.choices)
     resource_type = models.CharField(max_length=100)
     resource_id = models.CharField(max_length=100, blank=True)
@@ -25,9 +31,15 @@ class AuditLog(models.Model):
     class Meta:
         ordering = ["-created_at", "-id"]
         indexes = [
-            models.Index(fields=["actor", "-created_at"], name="audit_actor_created_idx"),
-            models.Index(fields=["action", "-created_at"], name="audit_action_created_idx"),
-            models.Index(fields=["resource_type", "resource_id"], name="audit_resource_idx"),
+            models.Index(
+                fields=["actor", "-created_at"], name="audit_actor_created_idx"
+            ),
+            models.Index(
+                fields=["action", "-created_at"], name="audit_action_created_idx"
+            ),
+            models.Index(
+                fields=["resource_type", "resource_id"], name="audit_resource_idx"
+            ),
             models.Index(fields=["-created_at"], name="audit_created_idx"),
         ]
 

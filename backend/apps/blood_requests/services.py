@@ -6,7 +6,9 @@ from .models import BloodRequest, BloodRequestStatus
 
 
 @transaction.atomic
-def create_blood_request(*, requester, blood_group, required_units, location, description=""):
+def create_blood_request(
+    *, requester, blood_group, required_units, location, description=""
+):
     return BloodRequest.objects.create(
         requester=requester,
         blood_group=blood_group,

@@ -1,9 +1,14 @@
+import logging
+
+import sentry_sdk
 from rest_framework import exceptions, status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
 
 from . import codes
 from .exceptions import BusinessRuleViolation
+
+logger = logging.getLogger(__name__)
 
 
 def _error_response(*, code, message, details=None, status_code=400, request_id=None):
@@ -27,6 +32,12 @@ def api_exception_handler(exc, context):
 
     response = exception_handler(exc, context)
     if response is None:
+        logger.exception(
+            "Unhandled application exception",
+            exc_info=exc,
+            extra={"request": request, "request_id": request_id},
+        )
+        sentry_sdk.capture_exception(exc)
         return _error_response(
             code=codes.SERVER_ERROR,
             message="An unexpected server error occurred.",
@@ -42,12 +53,30 @@ def api_exception_handler(exc, context):
         response.status_code = status.HTTP_401_UNAUTHORIZED
     else:
         error_map = {
-        status.HTTP_400_BAD_REQUEST: (codes.VALIDATION_ERROR, "Request validation failed."),
-        status.HTTP_401_UNAUTHORIZED: (codes.AUTHENTICATION_REQUIRED, "Authentication credentials were not provided."),
-        status.HTTP_403_FORBIDDEN: (codes.PERMISSION_DENIED, "You do not have permission to perform this action."),
-        status.HTTP_404_NOT_FOUND: (codes.NOT_FOUND, "The requested resource was not found."),
-        status.HTTP_405_METHOD_NOT_ALLOWED: (codes.METHOD_NOT_ALLOWED, "The requested HTTP method is not allowed."),
-        status.HTTP_429_TOO_MANY_REQUESTS: (codes.THROTTLED, "Too many requests. Please try again later."),
+            status.HTTP_400_BAD_REQUEST: (
+                codes.VALIDATION_ERROR,
+                "Request validation failed.",
+            ),
+            status.HTTP_401_UNAUTHORIZED: (
+                codes.AUTHENTICATION_REQUIRED,
+                "Authentication credentials were not provided.",
+            ),
+            status.HTTP_403_FORBIDDEN: (
+                codes.PERMISSION_DENIED,
+                "You do not have permission to perform this action.",
+            ),
+            status.HTTP_404_NOT_FOUND: (
+                codes.NOT_FOUND,
+                "The requested resource was not found.",
+            ),
+            status.HTTP_405_METHOD_NOT_ALLOWED: (
+                codes.METHOD_NOT_ALLOWED,
+                "The requested HTTP method is not allowed.",
+            ),
+            status.HTTP_429_TOO_MANY_REQUESTS: (
+                codes.THROTTLED,
+                "Too many requests. Please try again later.",
+            ),
         }
         code, message = error_map.get(
             response.status_code,

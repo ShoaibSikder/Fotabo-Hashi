@@ -20,7 +20,9 @@ def _set_config(name: str, value: str) -> None:
         cursor.execute("SELECT set_config(%s, %s, false)", [name, value])
 
 
-def set_rls_context(*, user_id: int | None, is_admin: bool, is_authenticated: bool) -> None:
+def set_rls_context(
+    *, user_id: int | None, is_admin: bool, is_authenticated: bool
+) -> None:
     """Set connection-local identity values consumed by PostgreSQL RLS policies."""
     if connection.vendor != "postgresql":
         return

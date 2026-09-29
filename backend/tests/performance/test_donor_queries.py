@@ -19,7 +19,9 @@ def test_donor_list_query_count_does_not_grow_with_donor_count():
     baseline, _ = query_count_for(client, "/api/v1/donors/")
 
     for number in range(25):
-        user = User.objects.create_user(f"donor{number}@example.com", "StrongPassword123!")
+        user = User.objects.create_user(
+            f"donor{number}@example.com", "StrongPassword123!"
+        )
         user.profile.blood_group = BloodGroup.O_POSITIVE
         user.profile.is_available_for_donation = True
         user.profile.save()

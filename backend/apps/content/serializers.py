@@ -6,7 +6,16 @@ from .models import FoundingMember, Notice, OrganizationInformation, SliderItem
 class OrganizationInformationSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrganizationInformation
-        fields = ["id", "name", "slogan", "description", "address", "email", "phone", "updated_at"]
+        fields = [
+            "id",
+            "name",
+            "slogan",
+            "description",
+            "address",
+            "email",
+            "phone",
+            "updated_at",
+        ]
         read_only_fields = fields
 
 

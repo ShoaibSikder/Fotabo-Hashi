@@ -20,7 +20,14 @@ django-storages[s3]>=1.14,<2.0
 redis>=5.0,<7.0
 django-redis>=5.4,<6.0
 celery>=5.4,<6.0
+sentry-sdk>=2.0,<3.0
 
 # Testing
 pytest>=9.0,<10.0
 pytest-django>=4.14,<5.0
+
+# Development quality and test tooling
+factory-boy>=3.3,<4.0
+ruff>=0.8,<1.0
+black>=24.0,<26.0
+pre-commit>=4.0,<5.0

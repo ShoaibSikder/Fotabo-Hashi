@@ -10,3 +10,12 @@ def delete_media(name: str) -> None:
     """Delete only when a future reviewed cleanup policy authorizes it."""
     if name:
         default_storage.delete(name)
+
+
+def check_storage_connection() -> bool:
+    """Verify the configured backend can be accessed without exposing details."""
+    # Local storage is configuration-local; remote storage must make an API call.
+    if hasattr(default_storage, "location"):
+        return True
+    default_storage.listdir("")
+    return True

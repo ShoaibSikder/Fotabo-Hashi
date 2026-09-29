@@ -2,7 +2,6 @@ from drf_spectacular.utils import extend_schema
 from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from .filters import BloodRequestFilter
 from .selectors import get_blood_request_queryset

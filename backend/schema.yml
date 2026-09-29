@@ -994,6 +994,39 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/v1/health/live/:
+    get:
+      operationId: health_live_retrieve
+      tags:
+      - Health
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/health/ready/:
+    get:
+      operationId: health_ready_retrieve
+      tags:
+      - Health
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+        '503':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/v1/leaderboard/:
     get:
       operationId: leaderboard_list

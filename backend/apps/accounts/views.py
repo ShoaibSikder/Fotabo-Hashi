@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.middleware.csrf import get_token
 from drf_spectacular.utils import OpenApiTypes, extend_schema
-from rest_framework import exceptions, permissions, status
+from rest_framework import exceptions, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.exceptions import TokenError
@@ -9,14 +9,15 @@ from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .cookies import clear_auth_cookies, set_auth_cookies
-from .authentication import CookieOrBearerJWTAuthentication
-from .serializers import LoginSerializer
-from .throttles import LoginRateThrottle, RefreshRateThrottle
 from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
 from apps.audit.utils import get_client_ip
 from infrastructure.database.rls.context import set_login_context
+
+from .authentication import CookieOrBearerJWTAuthentication
+from .cookies import clear_auth_cookies, set_auth_cookies
+from .serializers import LoginSerializer
+from .throttles import LoginRateThrottle, RefreshRateThrottle
 
 
 def session_user_data(user):
@@ -86,9 +87,7 @@ class RefreshView(APIView):
         try:
             serializer.is_valid(raise_exception=True)
         except TokenError:
-            raise exceptions.AuthenticationFailed(
-                "Invalid or expired refresh token."
-            )
+            raise exceptions.AuthenticationFailed("Invalid or expired refresh token.")
         tokens = serializer.validated_data
         response = Response({"success": True})
         set_auth_cookies(
@@ -147,4 +146,6 @@ class MeView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        return Response({**session_user_data(request.user), "is_active": request.user.is_active})
+        return Response(
+            {**session_user_data(request.user), "is_active": request.user.is_active}
+        )

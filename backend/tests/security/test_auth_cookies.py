@@ -96,7 +96,9 @@ class TestAuthenticationCookies:
     def test_cookie_authenticated_unsafe_request_requires_csrf(self):
         client = APIClient(enforce_csrf_checks=True)
         self.login(client)
-        rejected = client.patch("/api/v1/profile/me/", {"name": "Updated"}, format="json")
+        rejected = client.patch(
+            "/api/v1/profile/me/", {"name": "Updated"}, format="json"
+        )
         assert rejected.status_code == 403
 
         csrf_token = self.csrf_token(client)
@@ -111,5 +113,7 @@ class TestAuthenticationCookies:
 
 @pytest.mark.django_db
 def test_cors_does_not_allow_arbitrary_origins():
-    response = APIClient().get("/api/v1/health/", HTTP_ORIGIN="https://attacker.example")
+    response = APIClient().get(
+        "/api/v1/health/", HTTP_ORIGIN="https://attacker.example"
+    )
     assert "access-control-allow-origin" not in response.headers

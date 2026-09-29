@@ -17,7 +17,10 @@ def test_blood_requests_are_shared_for_reading_but_owner_only_for_mutation():
     )
 
     set_rls_context(user_id=user_a.id, is_admin=False, is_authenticated=True)
-    assert set(BloodRequest.objects.values_list("id", flat=True)) == {request_a.id, request_b.id}
+    assert set(BloodRequest.objects.values_list("id", flat=True)) == {
+        request_a.id,
+        request_b.id,
+    }
     assert BloodRequest.objects.filter(id=request_b.id).update(location="Blocked") == 0
     assert BloodRequest.objects.filter(id=request_b.id).delete()[0] == 0
 

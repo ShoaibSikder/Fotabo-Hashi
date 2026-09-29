@@ -23,7 +23,9 @@ def test_blood_request_pagination_caps_page_size_and_has_stable_pages():
     first_page = client.get("/api/v1/blood-requests/", {"page": 1})
     second_page = client.get("/api/v1/blood-requests/", {"page": 2})
 
-    assert capped.status_code == first_page.status_code == second_page.status_code == 200
+    assert (
+        capped.status_code == first_page.status_code == second_page.status_code == 200
+    )
     assert len(capped.data["data"]["results"]) == 25
     assert {item["id"] for item in first_page.data["data"]["results"]}.isdisjoint(
         {item["id"] for item in second_page.data["data"]["results"]}

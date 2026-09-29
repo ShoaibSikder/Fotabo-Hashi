@@ -1,0 +1,1 @@
+"""Cross-application integration tests."""

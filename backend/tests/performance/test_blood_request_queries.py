@@ -12,7 +12,9 @@ def test_blood_request_list_query_count_does_not_grow_with_result_count():
     client = APIClient()
     client.force_authenticate(user)
 
-    BloodRequest.objects.create(requester=user, blood_group="O+", required_units=1, location="Dhaka")
+    BloodRequest.objects.create(
+        requester=user, blood_group="O+", required_units=1, location="Dhaka"
+    )
     baseline, _ = query_count_for(client, "/api/v1/blood-requests/")
 
     for number in range(25):

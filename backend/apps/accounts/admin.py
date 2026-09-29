@@ -18,8 +18,12 @@ class UserAdmin(BaseUserAdmin):
             "Authorization",
             {
                 "fields": (
-                    "role", "is_active", "is_staff", "is_superuser",
-                    "groups", "user_permissions",
+                    "role",
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
                 )
             },
         ),
@@ -31,7 +35,12 @@ class UserAdmin(BaseUserAdmin):
             {
                 "classes": ("wide",),
                 "fields": (
-                    "email", "password1", "password2", "role", "is_active", "is_staff",
+                    "email",
+                    "password1",
+                    "password2",
+                    "role",
+                    "is_active",
+                    "is_staff",
                 ),
             },
         ),

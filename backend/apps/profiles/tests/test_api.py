@@ -29,8 +29,10 @@ class TestMyProfileAPI:
         response = self.client.patch(
             "/api/v1/profile/me/",
             {
-                "name": "Shoaib Sikder", "phone": "01700000000",
-                "blood_group": "O+", "location": "Dhaka",
+                "name": "Shoaib Sikder",
+                "phone": "01700000000",
+                "blood_group": "O+",
+                "location": "Dhaka",
                 "is_available_for_donation": True,
             },
             format="json",
@@ -59,7 +61,9 @@ class TestMyProfileAPI:
 
     def test_role_cannot_be_changed_from_profile_api(self):
         response = self.client.patch(
-            "/api/v1/profile/me/", {"name": "Updated Name", "role": "ADMIN"}, format="json"
+            "/api/v1/profile/me/",
+            {"name": "Updated Name", "role": "ADMIN"},
+            format="json",
         )
         assert response.status_code == 200
         assert response.data["role"] == "USER"

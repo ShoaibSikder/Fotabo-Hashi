@@ -4,7 +4,10 @@ from rest_framework.test import APIClient
 
 from apps.accounts.models import User
 from apps.accounts.throttles import LoginRateThrottle, RefreshRateThrottle
-from apps.blood_requests.throttles import BloodRequestActionThrottle, BloodRequestCreateThrottle
+from apps.blood_requests.throttles import (
+    BloodRequestActionThrottle,
+    BloodRequestCreateThrottle,
+)
 
 
 @pytest.mark.django_db
@@ -45,7 +48,10 @@ def test_blood_request_creation_uses_its_dedicated_user_throttle(monkeypatch):
     client.force_authenticate(user=user)
     payload = {"blood_group": "O+", "required_units": 1, "location": "Dhaka"}
 
-    assert client.post("/api/v1/blood-requests/", payload, format="json").status_code == 201
+    assert (
+        client.post("/api/v1/blood-requests/", payload, format="json").status_code
+        == 201
+    )
     response = client.post("/api/v1/blood-requests/", payload, format="json")
 
     assert response.status_code == 429

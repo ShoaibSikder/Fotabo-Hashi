@@ -6,7 +6,12 @@ from rest_framework.views import APIView
 from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
 from apps.audit.utils import get_client_ip
-from apps.content.models import FoundingMember, Notice, OrganizationInformation, SliderItem
+from apps.content.models import (
+    FoundingMember,
+    Notice,
+    OrganizationInformation,
+    SliderItem,
+)
 from infrastructure.cache.invalidation import (
     invalidate_founding_members,
     invalidate_public_notices,
@@ -102,7 +107,9 @@ class AuditedContentMixin(AuditAdminMixin):
             action=AuditAction.CREATE,
             instance=instance,
             description=f"Administrator created a {self.label}.",
-            metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))},
+            metadata={
+                "name": getattr(instance, "title", getattr(instance, "name", ""))
+            },
         )
         self.invalidate_public_cache()
 
@@ -120,7 +127,9 @@ class AuditedContentMixin(AuditAdminMixin):
             action=AuditAction.DELETE,
             instance=instance,
             description=f"Administrator deleted a {self.label}.",
-            metadata={"name": getattr(instance, "title", getattr(instance, "name", ""))},
+            metadata={
+                "name": getattr(instance, "title", getattr(instance, "name", ""))
+            },
         )
         instance.delete()
         self.invalidate_public_cache()
@@ -144,7 +153,9 @@ class NoticeAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyA
     cache_invalidator = staticmethod(invalidate_public_notices)
 
 
-class FoundingMemberAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView):
+class FoundingMemberAdminListCreateView(
+    AuditedContentMixin, generics.ListCreateAPIView
+):
     permission_classes = [IsAdminRole]
     queryset = FoundingMember.objects.all()
     serializer_class = FoundingMemberAdminSerializer
@@ -153,7 +164,9 @@ class FoundingMemberAdminListCreateView(AuditedContentMixin, generics.ListCreate
     cache_invalidator = staticmethod(invalidate_founding_members)
 
 
-class FoundingMemberAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
+class FoundingMemberAdminDetailView(
+    AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView
+):
     permission_classes = [IsAdminRole]
     queryset = FoundingMember.objects.all()
     serializer_class = FoundingMemberAdminSerializer
@@ -171,7 +184,9 @@ class SliderItemAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIV
     cache_invalidator = staticmethod(invalidate_slider_items)
 
 
-class SliderItemAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
+class SliderItemAdminDetailView(
+    AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView
+):
     permission_classes = [IsAdminRole]
     queryset = SliderItem.objects.all()
     serializer_class = SliderItemAdminSerializer

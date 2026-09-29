@@ -20,7 +20,10 @@ class SupabaseStorage:
             raise ImproperlyConfigured(
                 "SUPABASE_S3_ENDPOINT is required when STORAGE_BACKEND=supabase."
             )
-        if not settings.SUPABASE_ACCESS_KEY_ID or not settings.SUPABASE_SECRET_ACCESS_KEY:
+        if (
+            not settings.SUPABASE_ACCESS_KEY_ID
+            or not settings.SUPABASE_SECRET_ACCESS_KEY
+        ):
             raise ImproperlyConfigured(
                 "Supabase server-side storage credentials are required when "
                 "STORAGE_BACKEND=supabase."
@@ -46,6 +49,4 @@ def get_media_storage():
         return LocalMediaStorage()
     if settings.STORAGE_BACKEND == "supabase":
         return SupabaseStorage()
-    raise ImproperlyConfigured(
-        "STORAGE_BACKEND must be either 'local' or 'supabase'."
-    )
+    raise ImproperlyConfigured("STORAGE_BACKEND must be either 'local' or 'supabase'.")

@@ -8,7 +8,5 @@ class IsAdminUserRole(BasePermission):
         user = request.user
 
         return bool(
-            user
-            and user.is_authenticated
-            and getattr(user, "role", None) == "ADMIN"
+            user and user.is_authenticated and getattr(user, "role", None) == "ADMIN"
         )

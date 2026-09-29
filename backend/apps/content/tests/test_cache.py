@@ -10,7 +10,9 @@ from infrastructure.cache.keys import PUBLIC_NOTICES_KEY
 @pytest.mark.django_db
 def test_public_notices_are_cached():
     cache.clear()
-    Notice.objects.create(title="Blood Donation Camp", content="Important notice", is_published=True)
+    Notice.objects.create(
+        title="Blood Donation Camp", content="Important notice", is_published=True
+    )
 
     response = APIClient().get("/api/v1/content/notices/")
 
@@ -22,7 +24,9 @@ def test_public_notices_are_cached():
 @pytest.mark.django_db
 def test_notice_cache_is_invalidated_after_admin_update():
     cache.clear()
-    notice = Notice.objects.create(title="Old Title", content="Old content", is_published=True)
+    notice = Notice.objects.create(
+        title="Old Title", content="Old content", is_published=True
+    )
     admin = User.objects.create_user(
         email="admin@example.com",
         password="AdminPassword123!",

@@ -1,7 +1,6 @@
 from pathlib import Path
 from uuid import uuid4
 
-
 PROFILE_PATH = "profiles"
 FOUNDING_MEMBER_PATH = "founding-members"
 SLIDER_PATH = "slider"

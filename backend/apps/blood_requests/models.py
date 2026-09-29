@@ -31,9 +31,15 @@ class BloodRequest(models.Model):
     class Meta:
         ordering = ["-created_at", "-id"]
         indexes = [
-            models.Index(fields=["status", "-created_at"], name="blood_req_status_created_idx"),
-            models.Index(fields=["blood_group", "status"], name="blood_req_group_status_idx"),
-            models.Index(fields=["requester", "-created_at"], name="blood_req_requester_created"),
+            models.Index(
+                fields=["status", "-created_at"], name="blood_req_status_created_idx"
+            ),
+            models.Index(
+                fields=["blood_group", "status"], name="blood_req_group_status_idx"
+            ),
+            models.Index(
+                fields=["requester", "-created_at"], name="blood_req_requester_created"
+            ),
         ]
 
     def __str__(self):

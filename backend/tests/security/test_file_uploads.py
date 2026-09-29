@@ -42,13 +42,17 @@ def test_invalid_mime_type_is_rejected():
 
 
 def test_fake_image_renamed_as_jpg_is_rejected():
-    fake = SimpleUploadedFile("malicious.jpg", b"not an image", content_type="image/jpeg")
+    fake = SimpleUploadedFile(
+        "malicious.jpg", b"not an image", content_type="image/jpeg"
+    )
     with pytest.raises(ValidationError, match="valid image"):
         validate_image_upload(fake)
 
 
 def test_corrupted_image_is_rejected():
-    corrupted = SimpleUploadedFile("broken.png", b"\x89PNG\r\n", content_type="image/png")
+    corrupted = SimpleUploadedFile(
+        "broken.png", b"\x89PNG\r\n", content_type="image/png"
+    )
     with pytest.raises(ValidationError, match="valid image"):
         validate_image_upload(corrupted)
 

@@ -3,7 +3,6 @@ from pathlib import Path
 from PIL import Image, UnidentifiedImageError
 from rest_framework.exceptions import ValidationError
 
-
 MAX_IMAGE_SIZE = 5 * 1024 * 1024
 MIN_IMAGE_WIDTH = 100
 MIN_IMAGE_HEIGHT = 100

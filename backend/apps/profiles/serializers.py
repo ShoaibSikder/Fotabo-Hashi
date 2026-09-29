@@ -17,9 +17,17 @@ class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
         fields = [
-            "id", "email", "role", "name", "profile_image", "phone",
-            "blood_group", "location", "is_available_for_donation",
-            "created_at", "updated_at",
+            "id",
+            "email",
+            "role",
+            "name",
+            "profile_image",
+            "phone",
+            "blood_group",
+            "location",
+            "is_available_for_donation",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "email", "role", "created_at", "updated_at"]
 

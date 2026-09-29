@@ -1,4 +1,9 @@
-from .keys import FOUNDING_MEMBERS_KEY, ORGANIZATION_CONTENT_KEY, PUBLIC_NOTICES_KEY, SLIDER_ITEMS_KEY
+from .keys import (
+    FOUNDING_MEMBERS_KEY,
+    ORGANIZATION_CONTENT_KEY,
+    PUBLIC_NOTICES_KEY,
+    SLIDER_ITEMS_KEY,
+)
 from .services import delete_cached
 
 

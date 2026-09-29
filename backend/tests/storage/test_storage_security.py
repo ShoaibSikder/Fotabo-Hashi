@@ -1,5 +1,5 @@
-from django.test import override_settings
 from django.core.exceptions import ImproperlyConfigured
+from django.test import override_settings
 
 from infrastructure.storage.backends import get_media_storage
 
