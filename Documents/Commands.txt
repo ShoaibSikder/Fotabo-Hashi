@@ -1,2 +1,0 @@
-active virtual enviroment
-.venv\Scripts\activate
