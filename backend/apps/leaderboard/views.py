@@ -9,7 +9,7 @@ from .serializers import LeaderboardEntrySerializer
 
 @extend_schema(
     tags=["Leaderboard"],
-    description="Leaderboard data source and ranking metric are pending specification.",
+    description="Ranks active members by administrator-recorded completed blood donations.",
     responses=LeaderboardEntrySerializer(many=True),
 )
 class LeaderboardListView(APIView):

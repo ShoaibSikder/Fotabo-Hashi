@@ -1,8 +1,10 @@
 from datetime import timedelta
 from pathlib import Path
+from urllib.parse import parse_qs, unquote, urlparse
 
 import environ
 import sentry_sdk
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -37,6 +39,7 @@ INSTALLED_APPS = [
     "apps.content",
     "apps.administration",
     "apps.audit",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -74,17 +77,47 @@ ASGI_APPLICATION = "config.asgi.application"
 
 AUTH_USER_MODEL = "accounts.User"
 
-DATABASES = {
-    "default": {
+SUPABASE_URL = env("SUPABASE_URL", default="")
+DATABASE_URL = env("DATABASE_URL", default="").strip()
+DB_CONN_MAX_AGE = env.int("DB_CONN_MAX_AGE", default=60)
+
+
+def database_from_url(database_url):
+    parsed = urlparse(database_url)
+    if parsed.scheme not in {"postgres", "postgresql"} or not parsed.hostname:
+        raise ImproperlyConfigured(
+            "DATABASE_URL must be a valid postgres:// or postgresql:// URL."
+        )
+
+    query = parse_qs(parsed.query)
+    sslmode = (query.get("sslmode") or [None])[0]
+    options = {"sslmode": sslmode or ("require" if not DEBUG else "prefer")}
+    database_user = unquote(parsed.username or "")
+    if database_user == "postgres" and parsed.hostname.endswith(".pooler.supabase.com"):
+        project_host = urlparse(SUPABASE_URL).hostname or ""
+        if project_host.endswith(".supabase.co"):
+            project_ref = project_host.removesuffix(".supabase.co")
+            if project_ref and "." not in project_ref:
+                database_user = f"postgres.{project_ref}"
+    return {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": env("DATABASE_NAME"),
-        "USER": env("DATABASE_USER"),
-        "PASSWORD": env("DATABASE_PASSWORD"),
-        "HOST": env("DATABASE_HOST"),
-        "PORT": env("DATABASE_PORT"),
-        "CONN_MAX_AGE": 60,
+        "NAME": unquote(parsed.path.lstrip("/")),
+        "USER": database_user,
+        "PASSWORD": unquote(parsed.password or ""),
+        "HOST": parsed.hostname,
+        "PORT": str(parsed.port or 5432),
+        "OPTIONS": options,
+        "CONN_MAX_AGE": DB_CONN_MAX_AGE,
     }
-}
+
+
+if not DATABASE_URL:
+    raise ImproperlyConfigured(
+        "DATABASE_URL is required. Configure the Supabase PostgreSQL "
+        "connection string in backend/.env."
+    )
+
+DATABASES = {"default": database_from_url(DATABASE_URL)}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -92,7 +125,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {"min_length": 12},
+        "OPTIONS": {"min_length": 8},
     },
     {
         "NAME": "django.contrib.auth.password_validation.CommonPasswordValidator",
@@ -110,6 +143,25 @@ USE_TZ = True
 CORS_ALLOWED_ORIGINS = env.list("CORS_ALLOWED_ORIGINS", default=[])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
 CORS_ALLOW_CREDENTIALS = True
+
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND",
+    default=(
+        "django.core.mail.backends.console.EmailBackend"
+        if DEBUG
+        else "django.core.mail.backends.smtp.EmailBackend"
+    ),
+)
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
+EMAIL_USE_TLS = env.bool("EMAIL_USE_TLS", default=True)
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@fotabohashi.org")
+FRONTEND_BASE_URL = env("FRONTEND_BASE_URL", default="http://localhost:5173")
+RESEND_API_KEY = env("RESEND_API_KEY", default="")
+RESEND_FROM_EMAIL = env("RESEND_FROM_EMAIL", default="") or DEFAULT_FROM_EMAIL
+RESEND_TIMEOUT_SECONDS = env.int("RESEND_TIMEOUT_SECONDS", default=15)
 
 JWT_ACCESS_COOKIE_NAME = env("JWT_ACCESS_COOKIE_NAME", default="fh_access")
 JWT_REFRESH_COOKIE_NAME = env("JWT_REFRESH_COOKIE_NAME", default="fh_refresh")
@@ -146,19 +198,17 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = env.int(
     default=10 * 1024 * 1024,
 )
 
-STATIC_URL = "static/"
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 STORAGE_BACKEND = env("STORAGE_BACKEND", default="local").lower()
-SUPABASE_URL = env("SUPABASE_URL", default="")
+SUPABASE_SERVICE_ROLE_KEY = env("SUPABASE_SERVICE_ROLE_KEY", default="")
 SUPABASE_STORAGE_BUCKET = env(
     "SUPABASE_STORAGE_BUCKET",
     default="fotabo-hashi-media",
 )
-SUPABASE_S3_ENDPOINT = env("SUPABASE_S3_ENDPOINT", default="")
-SUPABASE_S3_REGION = env("SUPABASE_S3_REGION", default="")
-SUPABASE_ACCESS_KEY_ID = env("SUPABASE_ACCESS_KEY_ID", default="")
-SUPABASE_SECRET_ACCESS_KEY = env("SUPABASE_SECRET_ACCESS_KEY", default="")
+SUPABASE_SIGNED_URL_TTL = env.int("SUPABASE_SIGNED_URL_TTL", default=3600)
 STORAGES = {
     "default": {
         "BACKEND": (
@@ -186,14 +236,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": ("apps.common.pagination.StandardPagination"),
     "PAGE_SIZE": 20,
     "DEFAULT_THROTTLE_CLASSES": [
-        "rest_framework.throttling.AnonRateThrottle",
-        "rest_framework.throttling.UserRateThrottle",
+        "apps.common.throttles.CacheFailOpenAnonRateThrottle",
+        "apps.common.throttles.CacheFailOpenUserRateThrottle",
     ],
     "DEFAULT_THROTTLE_RATES": {
         "anon": "100/hour",
         "user": "1000/hour",
         "login": "10/minute",
         "refresh": "30/minute",
+        "registration": "5/hour",
+        "password_reset": "5/hour",
+        "password_change": "5/hour",
         "blood_request_create": "30/hour",
         "blood_request_action": "60/hour",
     },
@@ -243,12 +296,16 @@ SPECTACULAR_SETTINGS = {
         {"name": "Blood Requests", "description": "Blood request management."},
         {
             "name": "Leaderboard",
-            "description": "Leaderboard API boundary; data source pending.",
+            "description": "Ranks active members by administrator-verified donations.",
         },
         {"name": "Public Content", "description": "Public organization content."},
         {
             "name": "Administration",
-            "description": "Administrator-only content management.",
+            "description": "User, request, and audit oversight for administrators.",
+        },
+        {
+            "name": "Notifications",
+            "description": "Private notifications for the signed-in user.",
         },
     ],
     "APPEND_COMPONENTS": {

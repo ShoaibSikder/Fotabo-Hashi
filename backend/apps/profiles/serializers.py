@@ -1,18 +1,14 @@
 from rest_framework import serializers
 
-from apps.common.validators import validate_image_upload
+from apps.leaderboard.review_models import DonationCountReview
 
 from .models import Profile
 
 
 class ProfileSerializer(serializers.ModelSerializer):
-    profile_image = serializers.ImageField(
-        required=False,
-        allow_null=True,
-        validators=[validate_image_upload],
-    )
     email = serializers.EmailField(source="user.email", read_only=True)
     role = serializers.CharField(source="user.role", read_only=True)
+    donation_count_review_status = serializers.SerializerMethodField()
 
     class Meta:
         model = Profile
@@ -21,15 +17,33 @@ class ProfileSerializer(serializers.ModelSerializer):
             "email",
             "role",
             "name",
-            "profile_image",
             "phone",
             "blood_group",
             "location",
             "is_available_for_donation",
+            "self_reported_donation_count",
+            "approved_donation_count",
+            "donation_count_review_status",
             "created_at",
             "updated_at",
         ]
-        read_only_fields = ["id", "email", "role", "created_at", "updated_at"]
+        read_only_fields = [
+            "id",
+            "email",
+            "role",
+            "approved_donation_count",
+            "donation_count_review_status",
+            "created_at",
+            "updated_at",
+        ]
+
+    def get_donation_count_review_status(self, profile):
+        return (
+            DonationCountReview.objects.filter(user_id=profile.user_id)
+            .order_by("-created_at", "-id")
+            .values_list("status", flat=True)
+            .first()
+        )
 
     def validate_name(self, value):
         value = value.strip()
@@ -39,3 +53,10 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     def validate_phone(self, value):
         return value.strip()
+
+    def validate(self, attrs):
+        if "profile_image" in self.initial_data:
+            raise serializers.ValidationError(
+                {"profile_image": "Profile image uploads are disabled."}
+            )
+        return attrs

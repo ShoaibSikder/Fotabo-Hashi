@@ -1,7 +1,10 @@
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User
+from apps.leaderboard.review_models import DonationCountReview
+from infrastructure.database.rls.context import temporary_admin_context
 
 
 @pytest.mark.django_db
@@ -34,6 +37,7 @@ class TestMyProfileAPI:
                 "blood_group": "O+",
                 "location": "Dhaka",
                 "is_available_for_donation": True,
+                "self_reported_donation_count": 7,
             },
             format="json",
         )
@@ -45,6 +49,41 @@ class TestMyProfileAPI:
         assert profile.blood_group == "O+"
         assert profile.location == "Dhaka"
         assert profile.is_available_for_donation is True
+        assert profile.self_reported_donation_count == 7
+        assert profile.approved_donation_count == 0
+        with temporary_admin_context():
+            review = DonationCountReview.objects.get(user=self.user)
+        assert review.previous_count == 0
+        assert review.requested_count == 7
+        assert review.status == DonationCountReview.Status.PENDING
+        assert response.data["donation_count_review_status"] == "PENDING"
+
+    def test_decreased_self_report_is_flagged_for_review(self):
+        profile = self.user.profile
+        profile.self_reported_donation_count = 5
+        profile.approved_donation_count = 4
+        with temporary_admin_context():
+            profile.save()
+
+        response = self.client.patch(
+            "/api/v1/profile/me/",
+            {"self_reported_donation_count": 2},
+            format="json",
+        )
+
+        assert response.status_code == 200
+        with temporary_admin_context():
+            review = DonationCountReview.objects.get(user=self.user)
+        assert review.previous_count == 4
+        assert review.requested_count == 2
+        assert self.user.profile.approved_donation_count == 4
+
+    def test_self_reported_donation_count_must_be_non_negative_integer(self):
+        response = self.client.patch(
+            "/api/v1/profile/me/", {"self_reported_donation_count": -1}, format="json"
+        )
+        assert response.status_code == 400
+        assert "self_reported_donation_count" in response.data["error"]["details"]
 
     def test_partial_update_only_changes_provided_fields(self):
         profile = self.user.profile
@@ -69,6 +108,16 @@ class TestMyProfileAPI:
         assert response.data["role"] == "USER"
         self.user.refresh_from_db()
         assert self.user.role == "USER"
+
+    def test_profile_image_upload_is_rejected(self):
+        response = self.client.patch(
+            "/api/v1/profile/me/",
+            {"profile_image": SimpleUploadedFile("avatar.jpg", b"image bytes")},
+            format="multipart",
+        )
+
+        assert response.status_code == 400
+        assert "profile_image" in response.data["error"]["details"]
 
     def test_email_cannot_be_changed_from_profile_api(self):
         response = self.client.patch(

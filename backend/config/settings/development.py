@@ -1,6 +1,7 @@
 import sys
 
 from .base import *
+from .base import env
 
 DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
@@ -13,10 +14,12 @@ LOGGING = {
 }
 
 
-# The development settings are the default for `manage.py test`.  Tests must
-# not require a locally running Redis server.
+# Local development should start without requiring Redis. Set
+# DJANGO_USE_REDIS_CACHE=True when a local Redis service is available.
 if "test" in sys.argv:
     RLS_TEST_MODE = True
+
+if "test" in sys.argv or not env.bool("DJANGO_USE_REDIS_CACHE", default=False):
     CACHES = {
         "default": {
             "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
