@@ -21,4 +21,5 @@ urlpatterns = [
     path("leaderboard/", include("apps.leaderboard.urls")),
     path("content/", include("apps.content.urls")),
     path("admin/", include("apps.administration.urls")),
+    path("notifications/", include("apps.notifications.urls")),
 ]
