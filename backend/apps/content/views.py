@@ -7,13 +7,11 @@ from .cache import (
     get_cached_founding_members,
     get_cached_organization,
     get_cached_public_notices,
-    get_cached_slider_items,
 )
 from .serializers import (
     FoundingMemberSerializer,
     NoticeSerializer,
     OrganizationInformationSerializer,
-    SliderItemSerializer,
 )
 
 
@@ -42,12 +40,3 @@ class FoundingMemberListView(APIView):
 
     def get(self, request):
         return Response(get_cached_founding_members())
-
-
-@extend_schema(tags=["Public Content"], responses=SliderItemSerializer(many=True))
-class SliderItemListView(APIView):
-    permission_classes = [AllowAny]
-    authentication_classes = []
-
-    def get(self, request):
-        return Response(get_cached_slider_items())

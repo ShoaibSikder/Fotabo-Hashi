@@ -73,12 +73,29 @@ class TestDonorListAPI:
         assert response.data["data"]["count"] == 1
         assert response.data["data"]["results"][0]["name"] == "Dhaka Donor"
 
-    def test_private_fields_are_not_exposed(self):
+    def test_combined_search_matches_name_location_and_blood_group(self):
+        self.create_user_with_profile(
+            "name@example.com", "Shoaib Sikder", BloodGroup.A_POSITIVE, "Dhaka"
+        )
+        self.create_user_with_profile(
+            "group@example.com", "Another Donor", BloodGroup.O_POSITIVE, "Sylhet"
+        )
+        self.create_user_with_profile(
+            "area@example.com", "Third Donor", BloodGroup.B_POSITIVE, "Dhaka North"
+        )
+
+        for term, expected_count in (("shoaib", 1), ("O+", 1), ("dhaka", 2)):
+            response = self.client.get("/api/v1/donors/", {"search": term})
+            assert response.status_code == 200
+            assert response.data["data"]["count"] == expected_count
+
+    def test_only_opted_in_donor_contact_is_exposed(self):
         self.create_user_with_profile(
             "private@example.com", "Private Donor", BloodGroup.O_POSITIVE, "Dhaka"
         )
         response = self.client.get("/api/v1/donors/")
         assert response.status_code == 200
         donor = response.data["data"]["results"][0]
-        for field in ("email", "phone", "role", "user"):
+        assert "phone" in donor
+        for field in ("email", "role", "user"):
             assert field not in donor

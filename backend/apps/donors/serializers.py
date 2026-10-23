@@ -9,8 +9,8 @@ class DonorSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "name",
-            "profile_image",
             "blood_group",
+            "phone",
             "location",
             "is_available_for_donation",
         ]

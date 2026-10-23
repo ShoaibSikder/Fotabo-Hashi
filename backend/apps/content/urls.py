@@ -4,7 +4,6 @@ from .views import (
     FoundingMemberListView,
     NoticeListView,
     OrganizationInformationView,
-    SliderItemListView,
 )
 
 urlpatterns = [
@@ -15,9 +14,8 @@ urlpatterns = [
     ),
     path("notices/", NoticeListView.as_view(), name="notice-list"),
     path(
-        "founding-members/",
+        "active-members/",
         FoundingMemberListView.as_view(),
-        name="founding-member-list",
+        name="active-member-list",
     ),
-    path("slider/", SliderItemListView.as_view(), name="slider-list"),
 ]

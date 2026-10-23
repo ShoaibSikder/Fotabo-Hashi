@@ -1,17 +1,18 @@
+from django.conf import settings
+from django.core.files.storage import default_storage
+
 from infrastructure.cache.keys import (
     FOUNDING_MEMBERS_KEY,
     ORGANIZATION_CONTENT_KEY,
     PUBLIC_NOTICES_KEY,
-    SLIDER_ITEMS_KEY,
 )
 from infrastructure.cache.services import get_cached, set_cached
 
-from .models import FoundingMember, Notice, OrganizationInformation, SliderItem
+from .models import FoundingMember, Notice, OrganizationInformation
 from .serializers import (
     FoundingMemberSerializer,
     NoticeSerializer,
     OrganizationInformationSerializer,
-    SliderItemSerializer,
 )
 
 ORGANIZATION_CACHE_TIMEOUT = 600
@@ -43,18 +44,24 @@ def get_cached_public_notices():
 def get_cached_founding_members():
     data = get_cached(FOUNDING_MEMBERS_KEY)
     if data is None:
+        members = list(FoundingMember.objects.filter(is_published=True))
+        image_names = [member.image.name for member in members if member.image]
+        if hasattr(default_storage, "urls"):
+            image_urls = default_storage.urls(image_names)
+        else:
+            image_urls = {
+                name: default_storage.url(name) for name in dict.fromkeys(image_names)
+            }
         data = FoundingMemberSerializer(
-            FoundingMember.objects.filter(is_published=True), many=True
+            members,
+            many=True,
+            context={"image_urls": image_urls},
         ).data
-        set_cached(FOUNDING_MEMBERS_KEY, data, timeout=PUBLIC_CONTENT_CACHE_TIMEOUT)
-    return data
-
-
-def get_cached_slider_items():
-    data = get_cached(SLIDER_ITEMS_KEY)
-    if data is None:
-        data = SliderItemSerializer(
-            SliderItem.objects.filter(is_published=True), many=True
-        ).data
-        set_cached(SLIDER_ITEMS_KEY, data, timeout=PUBLIC_CONTENT_CACHE_TIMEOUT)
+        cache_timeout = PUBLIC_CONTENT_CACHE_TIMEOUT
+        if hasattr(default_storage, "urls"):
+            cache_timeout = min(
+                cache_timeout,
+                max(1, settings.SUPABASE_SIGNED_URL_TTL - 5),
+            )
+        set_cached(FOUNDING_MEMBERS_KEY, data, timeout=cache_timeout)
     return data

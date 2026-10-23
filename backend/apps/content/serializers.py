@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import FoundingMember, Notice, OrganizationInformation, SliderItem
+from .models import FoundingMember, Notice, OrganizationInformation
 
 
 class OrganizationInformationSerializer(serializers.ModelSerializer):
@@ -27,14 +27,15 @@ class NoticeSerializer(serializers.ModelSerializer):
 
 
 class FoundingMemberSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = FoundingMember
-        fields = ["id", "name", "designation", "image", "description"]
+        fields = ["id", "name", "designation", "social_url", "image"]
         read_only_fields = fields
 
-
-class SliderItemSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = SliderItem
-        fields = ["id", "title", "description", "image", "link_url"]
-        read_only_fields = fields
+    def get_image(self, member):
+        if not member.image:
+            return None
+        image_urls = self.context.get("image_urls", {})
+        return image_urls.get(member.image.name) or None
