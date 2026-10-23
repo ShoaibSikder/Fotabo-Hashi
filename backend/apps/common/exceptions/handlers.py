@@ -32,9 +32,9 @@ def api_exception_handler(exc, context):
 
     response = exception_handler(exc, context)
     if response is None:
-        logger.exception(
+        logger.error(
             "Unhandled application exception",
-            exc_info=exc,
+            exc_info=(type(exc), exc, exc.__traceback__),
             extra={"request": request, "request_id": request_id},
         )
         sentry_sdk.capture_exception(exc)
@@ -77,15 +77,34 @@ def api_exception_handler(exc, context):
                 codes.THROTTLED,
                 "Too many requests. Please try again later.",
             ),
+            status.HTTP_500_INTERNAL_SERVER_ERROR: (
+                codes.SERVER_ERROR,
+                "An unexpected server error occurred.",
+            ),
+            status.HTTP_503_SERVICE_UNAVAILABLE: (
+                codes.SERVICE_UNAVAILABLE,
+                "The service is temporarily unavailable. Please try again later.",
+            ),
         }
         code, message = error_map.get(
             response.status_code,
             (f"HTTP_{response.status_code}", "The request could not be completed."),
         )
+    if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR:
+        logger.error(
+            "Handled server exception",
+            extra={"request_id": request_id, "status_code": response.status_code},
+        )
+        sentry_sdk.capture_exception(exc)
+
     return _error_response(
         code=code,
         message=message,
-        details=response.data,
+        details=(
+            {}
+            if response.status_code >= status.HTTP_500_INTERNAL_SERVER_ERROR
+            else response.data
+        ),
         status_code=response.status_code,
         request_id=request_id,
     )

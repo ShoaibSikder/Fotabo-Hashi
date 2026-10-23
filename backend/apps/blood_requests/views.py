@@ -3,6 +3,9 @@ from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 
+from apps.notifications.models import NotificationEvent
+from apps.notifications.services import create_notification, notify_administrators
+
 from .filters import BloodRequestFilter
 from .selectors import get_blood_request_queryset
 from .serializers import BloodRequestSerializer
@@ -26,13 +29,24 @@ class BloodRequestListCreateView(generics.ListCreateAPIView):
         return super().get_throttles()
 
     def get_queryset(self):
-        return get_blood_request_queryset()
+        queryset = get_blood_request_queryset()
+        if self.request.query_params.get("mine", "").lower() == "true":
+            queryset = queryset.filter(requester=self.request.user)
+        return queryset
 
     def perform_create(self, serializer):
         serializer.validated_data.pop("status", None)
         serializer.instance = create_blood_request(
             requester=self.request.user,
             **serializer.validated_data,
+        )
+        notify_administrators(
+            event_type=NotificationEvent.NEW_BLOOD_REQUEST,
+            action_url=f"/admin/requests?search={serializer.instance.pk}",
+            payload={
+                "blood_group": serializer.instance.blood_group,
+                "request_id": serializer.instance.pk,
+            },
         )
 
 
@@ -47,10 +61,21 @@ class BloodRequestDetailView(generics.RetrieveUpdateAPIView):
         blood_request = self.get_object()
         if blood_request.requester_id != self.request.user.id:
             raise PermissionDenied("You can only update your own blood requests.")
+        old_status = blood_request.status
         serializer.instance = update_blood_request(
             blood_request=blood_request,
             **serializer.validated_data,
         )
+        if serializer.instance.status != old_status:
+            create_notification(
+                recipient=blood_request.requester,
+                event_type=NotificationEvent.REQUEST_UPDATED,
+                action_url=f"/requests/{blood_request.pk}",
+                payload={
+                    "blood_group": blood_request.blood_group,
+                    "status": blood_request.status,
+                },
+            )
 
 
 class BloodRequestActionView(generics.GenericAPIView):
@@ -71,7 +96,18 @@ class BloodRequestActionView(generics.GenericAPIView):
         if blood_request.requester_id != request.user.id:
             raise PermissionDenied(self.ownership_message)
         blood_request = self.action_service(blood_request=blood_request)
-        return Response(BloodRequestSerializer(blood_request).data)
+        create_notification(
+            recipient=blood_request.requester,
+            event_type=NotificationEvent.REQUEST_UPDATED,
+            action_url=f"/requests/{blood_request.pk}",
+            payload={
+                "blood_group": blood_request.blood_group,
+                "status": blood_request.status,
+            },
+        )
+        return Response(
+            BloodRequestSerializer(blood_request, context={"request": request}).data
+        )
 
 
 @extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)

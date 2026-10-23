@@ -69,11 +69,28 @@ class TestBloodRequestAPI:
         assert response.status_code == 200
         assert response.data["data"]["count"] == 1
 
+    def test_user_can_filter_their_own_requests_for_dashboard(self):
+        own_request = self.create_request()
+        self.create_request(requester=self.other_user, status="FULFILLED")
+
+        response = self.client.get("/api/v1/blood-requests/?mine=true")
+
+        assert response.status_code == 200
+        assert response.data["data"]["count"] == 1
+        assert response.data["data"]["results"][0]["id"] == own_request.id
+
     def test_user_can_view_request(self):
         blood_request = self.create_request()
         response = self.client.get(f"/api/v1/blood-requests/{blood_request.id}/")
         assert response.status_code == 200
         assert response.data["id"] == blood_request.id
+        assert response.data["is_owner"] is True
+
+    def test_request_does_not_claim_other_user_as_owner(self):
+        blood_request = self.create_request(requester=self.other_user)
+        response = self.client.get(f"/api/v1/blood-requests/{blood_request.id}/")
+        assert response.status_code == 200
+        assert response.data["is_owner"] is False
 
     def test_user_can_update_own_request(self):
         blood_request = self.create_request()
@@ -133,6 +150,24 @@ class TestBloodRequestAPI:
         assert response.status_code == 200
         assert response.data["data"]["count"] == 1
         assert response.data["data"]["results"][0]["blood_group"] == "O+"
+
+    def test_combined_search_matches_group_status_location_and_description(self):
+        self.create_request(
+            blood_group="O+", location="Dhaka Medical", description="Urgent surgery"
+        )
+        self.create_request(
+            blood_group="A+", location="Sylhet Hospital", status="FULFILLED"
+        )
+
+        for term, expected_count in (
+            ("O+", 1),
+            ("fulfilled", 1),
+            ("dhaka", 1),
+            ("surgery", 1),
+        ):
+            response = self.client.get("/api/v1/blood-requests/", {"search": term})
+            assert response.status_code == 200
+            assert response.data["data"]["count"] == expected_count
 
     def test_owner_can_fulfill_active_request(self):
         blood_request = self.create_request()

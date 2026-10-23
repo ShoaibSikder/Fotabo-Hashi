@@ -1,3 +1,4 @@
+from django.db import transaction
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics, status
 from rest_framework.response import Response
@@ -10,12 +11,13 @@ from apps.content.models import (
     FoundingMember,
     Notice,
     OrganizationInformation,
-    SliderItem,
 )
+from apps.notifications.models import NotificationEvent
+from apps.notifications.services import notify_users
 from infrastructure.cache.invalidation import (
     invalidate_founding_members,
+    invalidate_organization_content,
     invalidate_public_notices,
-    invalidate_slider_items,
 )
 
 from .permissions import IsAdminRole
@@ -23,7 +25,6 @@ from .serializers import (
     FoundingMemberAdminSerializer,
     NoticeAdminSerializer,
     OrganizationInformationAdminSerializer,
-    SliderItemAdminSerializer,
 )
 from .services import create_or_update_organization_information
 
@@ -71,6 +72,7 @@ class OrganizationInformationAdminView(AuditAdminMixin, APIView):
         organization = create_or_update_organization_information(
             data=serializer.validated_data
         )
+        invalidate_organization_content()
         self.audit(
             action=AuditAction.CREATE if existing is None else AuditAction.UPDATE,
             instance=organization,
@@ -143,6 +145,20 @@ class NoticeAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView)
     label = "notice"
     cache_invalidator = staticmethod(invalidate_public_notices)
 
+    @transaction.atomic
+    def perform_create(self, serializer):
+        super().perform_create(serializer)
+        if serializer.instance.is_published:
+            self.notify_members(serializer.instance)
+
+    @staticmethod
+    def notify_members(notice):
+        notify_users(
+            event_type=NotificationEvent.ANNOUNCEMENT,
+            action_url="/#notices",
+            payload={"notice_title": notice.title},
+        )
+
 
 class NoticeAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminRole]
@@ -151,6 +167,13 @@ class NoticeAdminDetailView(AuditedContentMixin, generics.RetrieveUpdateDestroyA
     resource_type = "Notice"
     label = "notice"
     cache_invalidator = staticmethod(invalidate_public_notices)
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        was_published = serializer.instance.is_published
+        super().perform_update(serializer)
+        if not was_published and serializer.instance.is_published:
+            NoticeAdminListCreateView.notify_members(serializer.instance)
 
 
 class FoundingMemberAdminListCreateView(
@@ -173,23 +196,3 @@ class FoundingMemberAdminDetailView(
     resource_type = "FoundingMember"
     label = "founding member"
     cache_invalidator = staticmethod(invalidate_founding_members)
-
-
-class SliderItemAdminListCreateView(AuditedContentMixin, generics.ListCreateAPIView):
-    permission_classes = [IsAdminRole]
-    queryset = SliderItem.objects.all()
-    serializer_class = SliderItemAdminSerializer
-    resource_type = "SliderItem"
-    label = "slider item"
-    cache_invalidator = staticmethod(invalidate_slider_items)
-
-
-class SliderItemAdminDetailView(
-    AuditedContentMixin, generics.RetrieveUpdateDestroyAPIView
-):
-    permission_classes = [IsAdminRole]
-    queryset = SliderItem.objects.all()
-    serializer_class = SliderItemAdminSerializer
-    resource_type = "SliderItem"
-    label = "slider item"
-    cache_invalidator = staticmethod(invalidate_slider_items)

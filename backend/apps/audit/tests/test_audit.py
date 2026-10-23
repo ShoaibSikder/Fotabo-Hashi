@@ -2,9 +2,8 @@ import pytest
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User, UserRole
-from apps.audit.models import AuditAction, AuditLog
+from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
-from apps.content.models import Notice
 
 
 @pytest.mark.django_db
@@ -34,36 +33,10 @@ class TestAdminContentAuditing:
         )
         self.client.force_authenticate(user=self.admin)
 
-    def test_notice_mutations_are_audited(self):
-        create = self.client.post(
-            "/api/v1/admin/content/notices/",
-            {"title": "Test", "content": "Initial"},
+    def test_static_public_content_writes_are_not_exposed_to_administrators(self):
+        response = self.client.post(
+            "/api/v1/admin/content/founding-members/",
+            {"name": "Test"},
             format="json",
         )
-        assert create.status_code == 201
-        notice = Notice.objects.get()
-        assert AuditLog.objects.filter(
-            actor=self.admin,
-            action=AuditAction.CREATE,
-            resource_type="Notice",
-            resource_id=str(notice.id),
-        ).exists()
-        update = self.client.patch(
-            f"/api/v1/admin/content/notices/{notice.id}/",
-            {"title": "Updated"},
-            format="json",
-        )
-        assert update.status_code == 200
-        assert AuditLog.objects.filter(
-            action=AuditAction.UPDATE,
-            resource_type="Notice",
-            resource_id=str(notice.id),
-        ).exists()
-        delete = self.client.delete(f"/api/v1/admin/content/notices/{notice.id}/")
-        assert delete.status_code == 204
-        assert not Notice.objects.filter(id=notice.id).exists()
-        assert AuditLog.objects.filter(
-            action=AuditAction.DELETE,
-            resource_type="Notice",
-            resource_id=str(notice.id),
-        ).exists()
+        assert response.status_code == 404

@@ -1,13 +1,13 @@
-from rest_framework.throttling import UserRateThrottle
+from apps.common.throttles import CacheFailOpenUserRateThrottle
 
 
-class BloodRequestCreateThrottle(UserRateThrottle):
+class BloodRequestCreateThrottle(CacheFailOpenUserRateThrottle):
     """Limit creation without restricting normal blood-request reads."""
 
     scope = "blood_request_create"
 
 
-class BloodRequestActionThrottle(UserRateThrottle):
+class BloodRequestActionThrottle(CacheFailOpenUserRateThrottle):
     """Limit state-changing fulfill/cancel actions per authenticated user."""
 
     scope = "blood_request_action"
