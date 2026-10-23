@@ -1,6 +1,9 @@
+from io import BytesIO
+
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
-from django.core.files.storage import FileSystemStorage
+from django.core.files import File
+from django.core.files.storage import FileSystemStorage, Storage
 
 
 class LocalMediaStorage(FileSystemStorage):
@@ -12,36 +15,113 @@ class LocalMediaStorage(FileSystemStorage):
         super().__init__(*args, **kwargs)
 
 
-class SupabaseStorage:
-    """Lazy wrapper around django-storages' S3-compatible Supabase backend."""
+class SupabaseStorage(Storage):
+    """Store Django media through Supabase Storage using server-only credentials."""
 
-    def __new__(cls):
-        if not settings.SUPABASE_S3_ENDPOINT:
+    def __init__(self):
+        if not settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_ROLE_KEY:
             raise ImproperlyConfigured(
-                "SUPABASE_S3_ENDPOINT is required when STORAGE_BACKEND=supabase."
-            )
-        if (
-            not settings.SUPABASE_ACCESS_KEY_ID
-            or not settings.SUPABASE_SECRET_ACCESS_KEY
-        ):
-            raise ImproperlyConfigured(
-                "Supabase server-side storage credentials are required when "
+                "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required when "
                 "STORAGE_BACKEND=supabase."
             )
+        if not settings.SUPABASE_STORAGE_BUCKET:
+            raise ImproperlyConfigured(
+                "SUPABASE_STORAGE_BUCKET is required when STORAGE_BACKEND=supabase."
+            )
 
-        from storages.backends.s3 import S3Storage
+        from httpx import Client as HttpxClient
+        from supabase import ClientOptions, create_client
 
-        class ConfiguredSupabaseStorage(S3Storage):
-            bucket_name = settings.SUPABASE_STORAGE_BUCKET
-            endpoint_url = settings.SUPABASE_S3_ENDPOINT
-            region_name = settings.SUPABASE_S3_REGION or None
-            access_key = settings.SUPABASE_ACCESS_KEY_ID
-            secret_key = settings.SUPABASE_SECRET_ACCESS_KEY
-            default_acl = None
-            querystring_auth = False
-            file_overwrite = False
+        self.client = create_client(
+            settings.SUPABASE_URL.rstrip("/"),
+            settings.SUPABASE_SERVICE_ROLE_KEY,
+            options=ClientOptions(
+                httpx_client=HttpxClient(timeout=20, follow_redirects=True)
+            ),
+        )
+        self.bucket = self.client.storage.from_(settings.SUPABASE_STORAGE_BUCKET)
 
-        return ConfiguredSupabaseStorage()
+    @staticmethod
+    def _normalize_name(name):
+        return str(name or "").replace("\\", "/").lstrip("/")
+
+    def check_connection(self):
+        """Check the configured bucket without relying on Django's listdir API."""
+        self.bucket.list(path="", options={"limit": 1})
+        return True
+
+    def _save(self, name, content):
+        name = self._normalize_name(name)
+        if hasattr(content, "seek"):
+            content.seek(0)
+        data = content.read() if hasattr(content, "read") else content
+        file_options = {"upsert": "false"}
+        content_type = getattr(content, "content_type", None)
+        if content_type:
+            file_options["content-type"] = content_type
+        self.bucket.upload(path=name, file=data, file_options=file_options)
+        return name
+
+    def _open(self, name, mode="rb"):
+        if mode not in {"rb", "r"}:
+            raise ValueError("Supabase media files are read-only when opened.")
+        data = self.bucket.download(self._normalize_name(name))
+        return File(BytesIO(data), name=name)
+
+    def delete(self, name):
+        name = self._normalize_name(name)
+        if name:
+            self.bucket.remove([name])
+
+    def exists(self, name):
+        name = self._normalize_name(name)
+        if not name:
+            return False
+        try:
+            return bool(self.bucket.exists(name))
+        except Exception:
+            return False
+
+    def size(self, name):
+        name = self._normalize_name(name)
+        if not name:
+            return 0
+        try:
+            metadata = self.bucket.info(name)
+            return int(metadata.get("metadata", {}).get("size", 0) or 0)
+        except Exception:
+            return 0
+
+    def url(self, name):
+        name = self._normalize_name(name)
+        if not name:
+            return ""
+        # Signed URLs work for both public and private buckets. Public member
+        # data is cached for less than this configured URL lifetime.
+        response = self.bucket.create_signed_url(
+            name,
+            settings.SUPABASE_SIGNED_URL_TTL,
+        )
+        return response.get("signedURL") or response.get("signedUrl") or ""
+
+    def urls(self, names):
+        """Create signed URLs for multiple media objects in one request."""
+        normalized_names = list(
+            dict.fromkeys(self._normalize_name(name) for name in names)
+        )
+        normalized_names = [name for name in normalized_names if name]
+        if not normalized_names:
+            return {}
+
+        responses = self.bucket.create_signed_urls(
+            normalized_names,
+            settings.SUPABASE_SIGNED_URL_TTL,
+        )
+        return {
+            item.get("path"): item.get("signedURL") or item.get("signedUrl") or ""
+            for item in responses
+            if item.get("path")
+        }
 
 
 def get_media_storage():

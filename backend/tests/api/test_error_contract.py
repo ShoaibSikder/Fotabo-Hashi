@@ -1,7 +1,9 @@
 import pytest
-from rest_framework.test import APIClient
+from rest_framework.test import APIClient, APIRequestFactory
 
 from apps.accounts.models import User
+from apps.common.exceptions.exceptions import BusinessRuleViolation
+from apps.common.exceptions.handlers import api_exception_handler
 
 
 @pytest.mark.django_db
@@ -47,3 +49,34 @@ def test_invalid_login_uses_the_invalid_credentials_code():
 
     assert response.status_code == 401
     assert response.json()["error"]["code"] == "INVALID_CREDENTIALS"
+
+
+def test_unhandled_exception_returns_safe_error_with_request_id():
+    request = APIRequestFactory().get("/api/v1/example/")
+    request.request_id = "request-safe-123"
+
+    response = api_exception_handler(
+        ValueError("private implementation detail"),
+        {"request": request},
+    )
+
+    assert response.status_code == 500
+    assert response.data["success"] is False
+    assert response.data["error"]["code"] == "SERVER_ERROR"
+    assert response.data["error"]["request_id"] == "request-safe-123"
+    assert response.data["error"]["details"] == {}
+    assert "private implementation detail" not in str(response.data)
+
+
+def test_business_rule_exception_returns_the_domain_message():
+    request = APIRequestFactory().post("/api/v1/example/")
+    request.request_id = "request-business-456"
+
+    response = api_exception_handler(
+        BusinessRuleViolation("This request is already closed."),
+        {"request": request},
+    )
+
+    assert response.status_code == 400
+    assert response.data["error"]["code"] == "BUSINESS_RULE_VIOLATION"
+    assert response.data["error"]["message"] == "This request is already closed."

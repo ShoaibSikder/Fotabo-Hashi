@@ -3,7 +3,7 @@ from uuid import uuid4
 
 PROFILE_PATH = "profiles"
 FOUNDING_MEMBER_PATH = "founding-members"
-SLIDER_PATH = "slider"
+SLIDER_PATH = "slider"  # Required by historical migrations only.
 
 
 def generated_upload_path(prefix: str, filename: str) -> str:
@@ -13,6 +13,7 @@ def generated_upload_path(prefix: str, filename: str) -> str:
 
 
 def profile_upload_path(instance, filename: str) -> str:
+    """Preserve the import path for historical migrations only."""
     return generated_upload_path(PROFILE_PATH, filename)
 
 
@@ -21,4 +22,5 @@ def founding_member_upload_path(instance, filename: str) -> str:
 
 
 def slider_upload_path(instance, filename: str) -> str:
+    """Retained so Django can import the historical slider migration."""
     return generated_upload_path(SLIDER_PATH, filename)

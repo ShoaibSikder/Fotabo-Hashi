@@ -14,6 +14,10 @@ def delete_media(name: str) -> None:
 
 def check_storage_connection() -> bool:
     """Verify the configured backend can be accessed without exposing details."""
+    connection_check = getattr(default_storage, "check_connection", None)
+    if connection_check is not None:
+        return connection_check()
+
     # Local storage is configuration-local; remote storage must make an API call.
     if hasattr(default_storage, "location"):
         return True

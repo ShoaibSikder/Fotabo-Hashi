@@ -18,7 +18,7 @@ def test_user_is_forbidden_from_admin_and_other_users_request():
     )
     client = APIClient()
     client.force_authenticate(user=user)
-    assert client.get("/api/v1/admin/content/notices/").status_code == 403
+    assert client.get("/api/v1/admin/content/notices/").status_code == 404
     assert (
         client.patch(
             f"/api/v1/blood-requests/{request.id}/",

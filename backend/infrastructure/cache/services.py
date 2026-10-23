@@ -1,16 +1,30 @@
+import logging
+
 from django.core.cache import cache
+
+logger = logging.getLogger(__name__)
 
 
 def get_cached(key):
-    return cache.get(key)
+    try:
+        return cache.get(key)
+    except Exception:
+        logger.exception("Cache read failed; continuing without cached data.")
+        return None
 
 
 def set_cached(key, value, timeout=300):
-    cache.set(key, value, timeout=timeout)
+    try:
+        cache.set(key, value, timeout=timeout)
+    except Exception:
+        logger.exception("Cache write failed; continuing without cached data.")
 
 
 def delete_cached(key):
-    cache.delete(key)
+    try:
+        cache.delete(key)
+    except Exception:
+        logger.exception("Cache invalidation failed.")
 
 
 def check_cache_connection():

@@ -9,13 +9,15 @@ business-authorization layer; RLS is the second database boundary.
 | User account | No access | Own row | All rows |
 | Profile | No access | Own row | All rows |
 | Blood requests | No access | Read all; mutate own | All rows |
+| Donation records | No access | Own records only | All records |
+| Donation-count reviews | No access | Own review only | All reviews |
 | Organization information | Public read | Public read | Full access |
-| Notices, founding members, slider items | Published only | Published only | Full access |
+| Notices, founding members | Published only | Published only | Full access |
 | Audit logs | No access | No read access | Read access |
 
-The leaderboard has no RLS policy because no persisted ranking data source has
-been defined. A donation-history model must not be invented merely to support a
-leaderboard policy.
+Leaderboard totals use administrator-approved profile counts. Individual
+donation records and count-review submissions are protected by RLS; review
+submissions can be created by their owner and are moderated by administrators.
 
 ## Connection context
 
@@ -45,7 +47,8 @@ WHERE n.nspname = 'public'
   AND c.relname IN (
     'accounts_user', 'profiles_profile', 'blood_requests_bloodrequest',
     'content_organizationinformation', 'content_notice',
-    'content_foundingmember', 'content_slideritem', 'audit_auditlog'
+    'content_foundingmember', 'audit_auditlog',
+    'leaderboard_donationrecord', 'leaderboard_donationcountreview'
   );
 ```
 

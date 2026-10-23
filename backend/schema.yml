@@ -4,9 +4,218 @@ info:
   version: 1.0.0
   description: REST API for the Fotabo Hashi blood donation and donor discovery platform.
 paths:
-  /api/v1/admin/content/founding-members/:
+  /api/v1/admin/audit/:
     get:
-      operationId: admin_content_founding_members_list
+      operationId: admin_audit_list
+      description: Read-only audit activity for admins; excludes IP, user-agent and
+        metadata.
+      parameters:
+      - in: query
+        name: action
+        schema:
+          type: string
+          enum:
+          - CREATE
+          - DELETE
+          - LOGIN
+          - LOGOUT
+          - SECURITY
+          - UPDATE
+        description: |-
+          * `CREATE` - Create
+          * `UPDATE` - Update
+          * `DELETE` - Delete
+          * `LOGIN` - Login
+          * `LOGOUT` - Logout
+          * `SECURITY` - Security
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: resource_type
+        schema:
+          type: string
+      tags:
+      - Administration
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogAdminList'
+          description: ''
+  /api/v1/admin/blood-requests/:
+    get:
+      operationId: admin_blood_requests_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - admin
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAdminBloodRequestList'
+          description: ''
+    post:
+      operationId: admin_blood_requests_create
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+        required: true
+      security:
+      - BearerJWT: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBloodRequest'
+          description: ''
+  /api/v1/admin/blood-requests/{id}/:
+    get:
+      operationId: admin_blood_requests_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBloodRequest'
+          description: ''
+    put:
+      operationId: admin_blood_requests_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AdminBloodRequest'
+        required: true
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBloodRequest'
+          description: ''
+    patch:
+      operationId: admin_blood_requests_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminBloodRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminBloodRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedAdminBloodRequest'
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminBloodRequest'
+          description: ''
+    delete:
+      operationId: admin_blood_requests_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - admin
+      security:
+      - BearerJWT: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/admin/overview/:
+    get:
+      operationId: admin_overview_retrieve
+      tags:
+      - Administration
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/admin/public-content/members/:
+    get:
+      operationId: admin_public_content_members_list
       parameters:
       - name: page
         required: false
@@ -32,7 +241,7 @@ paths:
                 $ref: '#/components/schemas/PaginatedFoundingMemberAdminList'
           description: ''
     post:
-      operationId: admin_content_founding_members_create
+      operationId: admin_public_content_members_create
       tags:
       - admin
       requestBody:
@@ -56,9 +265,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/FoundingMemberAdmin'
           description: ''
-  /api/v1/admin/content/founding-members/{id}/:
+  /api/v1/admin/public-content/members/{id}/:
     get:
-      operationId: admin_content_founding_members_retrieve
+      operationId: admin_public_content_members_retrieve
       parameters:
       - in: path
         name: id
@@ -77,7 +286,7 @@ paths:
                 $ref: '#/components/schemas/FoundingMemberAdmin'
           description: ''
     put:
-      operationId: admin_content_founding_members_update
+      operationId: admin_public_content_members_update
       parameters:
       - in: path
         name: id
@@ -108,7 +317,7 @@ paths:
                 $ref: '#/components/schemas/FoundingMemberAdmin'
           description: ''
     patch:
-      operationId: admin_content_founding_members_partial_update
+      operationId: admin_public_content_members_partial_update
       parameters:
       - in: path
         name: id
@@ -138,7 +347,7 @@ paths:
                 $ref: '#/components/schemas/FoundingMemberAdmin'
           description: ''
     delete:
-      operationId: admin_content_founding_members_destroy
+      operationId: admin_public_content_members_destroy
       parameters:
       - in: path
         name: id
@@ -152,9 +361,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/admin/content/notices/:
+  /api/v1/admin/public-content/notices/:
     get:
-      operationId: admin_content_notices_list
+      operationId: admin_public_content_notices_list
       parameters:
       - name: page
         required: false
@@ -180,7 +389,7 @@ paths:
                 $ref: '#/components/schemas/PaginatedNoticeAdminList'
           description: ''
     post:
-      operationId: admin_content_notices_create
+      operationId: admin_public_content_notices_create
       tags:
       - admin
       requestBody:
@@ -204,9 +413,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/NoticeAdmin'
           description: ''
-  /api/v1/admin/content/notices/{id}/:
+  /api/v1/admin/public-content/notices/{id}/:
     get:
-      operationId: admin_content_notices_retrieve
+      operationId: admin_public_content_notices_retrieve
       parameters:
       - in: path
         name: id
@@ -225,7 +434,7 @@ paths:
                 $ref: '#/components/schemas/NoticeAdmin'
           description: ''
     put:
-      operationId: admin_content_notices_update
+      operationId: admin_public_content_notices_update
       parameters:
       - in: path
         name: id
@@ -256,7 +465,7 @@ paths:
                 $ref: '#/components/schemas/NoticeAdmin'
           description: ''
     patch:
-      operationId: admin_content_notices_partial_update
+      operationId: admin_public_content_notices_partial_update
       parameters:
       - in: path
         name: id
@@ -286,7 +495,7 @@ paths:
                 $ref: '#/components/schemas/NoticeAdmin'
           description: ''
     delete:
-      operationId: admin_content_notices_destroy
+      operationId: admin_public_content_notices_destroy
       parameters:
       - in: path
         name: id
@@ -300,97 +509,9 @@ paths:
       responses:
         '204':
           description: No response body
-  /api/v1/admin/content/organization/:
+  /api/v1/admin/users/:
     get:
-      operationId: admin_content_organization_retrieve
-      tags:
-      - Administration
-      security:
-      - BearerJWT: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationInformationAdmin'
-          description: ''
-    post:
-      operationId: admin_content_organization_create
-      tags:
-      - Administration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-        required: true
-      security:
-      - BearerJWT: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationInformationAdmin'
-          description: ''
-    put:
-      operationId: admin_content_organization_update
-      tags:
-      - Administration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/OrganizationInformationAdmin'
-        required: true
-      security:
-      - BearerJWT: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationInformationAdmin'
-          description: ''
-    patch:
-      operationId: admin_content_organization_partial_update
-      tags:
-      - Administration
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PatchedOrganizationInformationAdmin'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/PatchedOrganizationInformationAdmin'
-          multipart/form-data:
-            schema:
-              $ref: '#/components/schemas/PatchedOrganizationInformationAdmin'
-      security:
-      - BearerJWT: []
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/OrganizationInformationAdmin'
-          description: ''
-  /api/v1/admin/content/slider/:
-    get:
-      operationId: admin_content_slider_list
+      operationId: admin_users_list
       parameters:
       - name: page
         required: false
@@ -413,23 +534,23 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedSliderItemAdminList'
+                $ref: '#/components/schemas/PaginatedAdminUserList'
           description: ''
     post:
-      operationId: admin_content_slider_create
+      operationId: admin_users_create
       tags:
       - admin
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
+              $ref: '#/components/schemas/AdminUserCreate'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
+              $ref: '#/components/schemas/AdminUserCreate'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
+              $ref: '#/components/schemas/AdminUserCreate'
         required: true
       security:
       - BearerJWT: []
@@ -438,11 +559,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SliderItemAdmin'
+                $ref: '#/components/schemas/AdminUserCreate'
           description: ''
-  /api/v1/admin/content/slider/{id}/:
+  /api/v1/admin/users/{id}/:
     get:
-      operationId: admin_content_slider_retrieve
+      operationId: admin_users_retrieve
       parameters:
       - in: path
         name: id
@@ -458,10 +579,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SliderItemAdmin'
+                $ref: '#/components/schemas/AdminUser'
           description: ''
     put:
-      operationId: admin_content_slider_update
+      operationId: admin_users_update
       parameters:
       - in: path
         name: id
@@ -474,14 +595,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
+              $ref: '#/components/schemas/AdminUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
+              $ref: '#/components/schemas/AdminUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/SliderItemAdmin'
-        required: true
+              $ref: '#/components/schemas/AdminUser'
       security:
       - BearerJWT: []
       responses:
@@ -489,10 +609,10 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SliderItemAdmin'
+                $ref: '#/components/schemas/AdminUser'
           description: ''
     patch:
-      operationId: admin_content_slider_partial_update
+      operationId: admin_users_partial_update
       parameters:
       - in: path
         name: id
@@ -505,13 +625,13 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PatchedSliderItemAdmin'
+              $ref: '#/components/schemas/PatchedAdminUser'
           application/x-www-form-urlencoded:
             schema:
-              $ref: '#/components/schemas/PatchedSliderItemAdmin'
+              $ref: '#/components/schemas/PatchedAdminUser'
           multipart/form-data:
             schema:
-              $ref: '#/components/schemas/PatchedSliderItemAdmin'
+              $ref: '#/components/schemas/PatchedAdminUser'
       security:
       - BearerJWT: []
       responses:
@@ -519,23 +639,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SliderItemAdmin'
+                $ref: '#/components/schemas/AdminUser'
           description: ''
-    delete:
-      operationId: admin_content_slider_destroy
-      parameters:
-      - in: path
-        name: id
-        schema:
-          type: integer
-        required: true
-      tags:
-      - admin
-      security:
-      - BearerJWT: []
-      responses:
-        '204':
-          description: No response body
   /api/v1/auth/csrf/:
     get:
       operationId: auth_csrf_retrieve
@@ -602,6 +707,90 @@ paths:
       - Authentication
       security:
       - BearerJWT: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/password-change/:
+    post:
+      operationId: auth_password_change_create
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+        required: true
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/password-reset/:
+    post:
+      operationId: auth_password_reset_create
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetRequest'
+        required: true
+      security:
+      - BearerJWT: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/password-reset/confirm/:
+    post:
+      operationId: auth_password_reset_confirm_create
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PasswordResetConfirm'
+        required: true
+      security:
+      - BearerJWT: []
+      - {}
       responses:
         '200':
           content:
@@ -619,6 +808,34 @@ paths:
       - {}
       responses:
         '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - Authentication
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Registration'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Registration'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Registration'
+        required: true
+      security:
+      - BearerJWT: []
+      - {}
+      responses:
+        '201':
           content:
             application/json:
               schema:
@@ -667,6 +884,10 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
       - in: query
         name: status
         schema:
@@ -860,9 +1081,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/BloodRequest'
           description: ''
-  /api/v1/content/founding-members/:
+  /api/v1/content/active-members/:
     get:
-      operationId: content_founding_members_list
+      operationId: content_active_members_list
       tags:
       - Public Content
       security:
@@ -905,22 +1126,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/OrganizationInformation'
-          description: ''
-  /api/v1/content/slider/:
-    get:
-      operationId: content_slider_list
-      tags:
-      - Public Content
-      security:
-      - {}
-      responses:
-        '200':
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SliderItem'
           description: ''
   /api/v1/donors/:
     get:
@@ -968,6 +1173,10 @@ paths:
         description: Number of results to return per page.
         schema:
           type: integer
+      - in: query
+        name: search
+        schema:
+          type: string
       tags:
       - donors
       security:
@@ -1044,6 +1253,74 @@ paths:
                 items:
                   $ref: '#/components/schemas/LeaderboardEntry'
           description: ''
+  /api/v1/notifications/:
+    get:
+      operationId: notifications_list
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      tags:
+      - notifications
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/v1/notifications/{id}/read/:
+    post:
+      operationId: notifications_read_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        required: true
+      tags:
+      - notifications
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/Notification'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/Notification'
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/v1/notifications/read-all/:
+    post:
+      operationId: notifications_read_all_create
+      tags:
+      - notifications
+      security:
+      - BearerJWT: []
+      responses:
+        '200':
+          description: No response body
   /api/v1/profile/me/:
     get:
       operationId: profile_me_retrieve
@@ -1112,6 +1389,172 @@ paths:
           description: ''
 components:
   schemas:
+    ActionEnum:
+      enum:
+      - CREATE
+      - UPDATE
+      - DELETE
+      - LOGIN
+      - LOGOUT
+      - SECURITY
+      type: string
+      description: |-
+        * `CREATE` - Create
+        * `UPDATE` - Update
+        * `DELETE` - Delete
+        * `LOGIN` - Login
+        * `LOGOUT` - Logout
+        * `SECURITY` - Security
+    AdminBloodRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        requester_id:
+          type: integer
+        requester_email:
+          type: string
+          format: email
+          readOnly: true
+        requester_name:
+          type: string
+          readOnly: true
+        blood_group:
+          $ref: '#/components/schemas/BloodGroupEnum'
+        required_units:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        location:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blood_group
+      - created_at
+      - id
+      - location
+      - requester_email
+      - requester_name
+      - required_units
+      - updated_at
+    AdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+        name:
+          type: string
+        phone:
+          type: string
+        blood_group:
+          oneOf:
+          - $ref: '#/components/schemas/BloodGroupEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        location:
+          type: string
+        is_available_for_donation:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_login:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+      required:
+      - created_at
+      - id
+      - last_login
+    AdminUserCreate:
+      type: object
+      properties:
+        password_setup_sent:
+          type: boolean
+          readOnly: true
+          default: false
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+          maxLength: 150
+        phone:
+          type: string
+          maxLength: 30
+        blood_group:
+          $ref: '#/components/schemas/BloodGroupEnum'
+        location:
+          type: string
+          maxLength: 255
+        role:
+          allOf:
+          - $ref: '#/components/schemas/RoleEnum'
+          default: USER
+      required:
+      - blood_group
+      - email
+      - name
+      - password_setup_sent
+      - phone
+    AuditLogAdmin:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        actor_email:
+          type: string
+          format: email
+          readOnly: true
+        action:
+          allOf:
+          - $ref: '#/components/schemas/ActionEnum'
+          readOnly: true
+        resource_type:
+          type: string
+          readOnly: true
+        resource_id:
+          type: string
+          readOnly: true
+        description:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action
+      - actor_email
+      - created_at
+      - description
+      - id
+      - resource_id
+      - resource_type
     BlankEnum:
       enum:
       - ''
@@ -1144,6 +1587,9 @@ components:
         requester_name:
           type: string
           readOnly: true
+        is_owner:
+          type: string
+          readOnly: true
         blood_group:
           $ref: '#/components/schemas/BloodGroupEnum'
         required_units:
@@ -1171,6 +1617,7 @@ components:
       - blood_group
       - created_at
       - id
+      - is_owner
       - location
       - requester_name
       - required_units
@@ -1184,11 +1631,6 @@ components:
           readOnly: true
         name:
           type: string
-          readOnly: true
-        profile_image:
-          type: string
-          format: uri
-          nullable: true
           readOnly: true
         blood_group:
           allOf:
@@ -1206,7 +1648,20 @@ components:
       - is_available_for_donation
       - location
       - name
-      - profile_image
+    EventTypeEnum:
+      enum:
+      - NEW_ACCOUNT
+      - NEW_BLOOD_REQUEST
+      - REQUEST_UPDATED
+      - ACCOUNT_UPDATED
+      - ANNOUNCEMENT
+      type: string
+      description: |-
+        * `NEW_ACCOUNT` - New account
+        * `NEW_BLOOD_REQUEST` - New blood request
+        * `REQUEST_UPDATED` - Blood request updated
+        * `ACCOUNT_UPDATED` - Account updated
+        * `ANNOUNCEMENT` - Announcement
     FoundingMember:
       type: object
       properties:
@@ -1219,20 +1674,21 @@ components:
         designation:
           type: string
           readOnly: true
+        social_url:
+          type: string
+          format: uri
+          readOnly: true
         image:
           type: string
           format: uri
           nullable: true
           readOnly: true
-        description:
-          type: string
-          readOnly: true
       required:
-      - description
       - designation
       - id
       - image
       - name
+      - social_url
     FoundingMemberAdmin:
       type: object
       properties:
@@ -1245,12 +1701,13 @@ components:
         designation:
           type: string
           maxLength: 150
+        social_url:
+          type: string
+          format: uri
         image:
           type: string
           format: uri
           nullable: true
-        description:
-          type: string
         display_order:
           type: integer
           maximum: 2147483647
@@ -1269,6 +1726,7 @@ components:
       - created_at
       - id
       - name
+      - social_url
       - updated_at
     LeaderboardEntry:
       type: object
@@ -1279,10 +1737,6 @@ components:
           type: integer
         name:
           type: string
-        profile_image:
-          type: string
-          format: uri
-          nullable: true
       required:
       - name
       - rank
@@ -1290,6 +1744,10 @@ components:
     Login:
       type: object
       properties:
+        remember_me:
+          type: boolean
+          writeOnly: true
+          default: false
         email:
           type: string
           writeOnly: true
@@ -1337,6 +1795,7 @@ components:
         published_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         created_at:
           type: string
@@ -1350,8 +1809,38 @@ components:
       - content
       - created_at
       - id
+      - published_at
       - title
       - updated_at
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        event_type:
+          allOf:
+          - $ref: '#/components/schemas/EventTypeEnum'
+          readOnly: true
+        payload:
+          readOnly: true
+        action_url:
+          type: string
+          readOnly: true
+        is_read:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - action_url
+      - created_at
+      - event_type
+      - id
+      - is_read
+      - payload
     OrganizationInformation:
       type: object
       properties:
@@ -1390,42 +1879,75 @@ components:
       - phone
       - slogan
       - updated_at
-    OrganizationInformationAdmin:
+    PaginatedAdminBloodRequestList:
       type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
-          type: string
-          maxLength: 200
-        slogan:
-          type: string
-          maxLength: 255
-        description:
-          type: string
-        address:
-          type: string
-          maxLength: 255
-        email:
-          oneOf:
-          - type: string
-            format: email
-            maxLength: 254
-          - type: string
-            maxLength: 0
-        phone:
-          type: string
-          maxLength: 30
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
       required:
-      - description
-      - id
-      - name
-      - updated_at
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminBloodRequest'
+    PaginatedAdminUserList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminUser'
+    PaginatedAuditLogAdminList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLogAdmin'
     PaginatedBloodRequestList:
       type: object
       required:
@@ -1518,7 +2040,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/NoticeAdmin'
-    PaginatedSliderItemAdminList:
+    PaginatedNotificationList:
       type: object
       required:
       - count
@@ -1540,7 +2062,112 @@ components:
         results:
           type: array
           items:
-            $ref: '#/components/schemas/SliderItemAdmin'
+            $ref: '#/components/schemas/Notification'
+    PasswordChange:
+      type: object
+      properties:
+        current_password:
+          type: string
+          writeOnly: true
+        new_password:
+          type: string
+          writeOnly: true
+      required:
+      - current_password
+      - new_password
+    PasswordResetConfirm:
+      type: object
+      properties:
+        uid:
+          type: string
+        token:
+          type: string
+        new_password:
+          type: string
+          writeOnly: true
+      required:
+      - new_password
+      - token
+      - uid
+    PasswordResetRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+      required:
+      - email
+    PatchedAdminBloodRequest:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        requester_id:
+          type: integer
+        requester_email:
+          type: string
+          format: email
+          readOnly: true
+        requester_name:
+          type: string
+          readOnly: true
+        blood_group:
+          $ref: '#/components/schemas/BloodGroupEnum'
+        required_units:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        location:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+        status:
+          $ref: '#/components/schemas/StatusEnum'
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+    PatchedAdminUser:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        role:
+          $ref: '#/components/schemas/RoleEnum'
+        is_active:
+          type: boolean
+        name:
+          type: string
+        phone:
+          type: string
+        blood_group:
+          oneOf:
+          - $ref: '#/components/schemas/BloodGroupEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        location:
+          type: string
+        is_available_for_donation:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_login:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
     PatchedBloodRequest:
       type: object
       properties:
@@ -1548,6 +2175,9 @@ components:
           type: integer
           readOnly: true
         requester_name:
+          type: string
+          readOnly: true
+        is_owner:
           type: string
           readOnly: true
         blood_group:
@@ -1585,12 +2215,13 @@ components:
         designation:
           type: string
           maxLength: 150
+        social_url:
+          type: string
+          format: uri
         image:
           type: string
           format: uri
           nullable: true
-        description:
-          type: string
         display_order:
           type: integer
           maximum: 2147483647
@@ -1621,42 +2252,12 @@ components:
         published_at:
           type: string
           format: date-time
+          readOnly: true
           nullable: true
         created_at:
           type: string
           format: date-time
           readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedOrganizationInformationAdmin:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        name:
-          type: string
-          maxLength: 200
-        slogan:
-          type: string
-          maxLength: 255
-        description:
-          type: string
-        address:
-          type: string
-          maxLength: 255
-        email:
-          oneOf:
-          - type: string
-            format: email
-            maxLength: 254
-          - type: string
-            maxLength: 0
-        phone:
-          type: string
-          maxLength: 30
         updated_at:
           type: string
           format: date-time
@@ -1677,10 +2278,6 @@ components:
         name:
           type: string
           maxLength: 150
-        profile_image:
-          type: string
-          format: uri
-          nullable: true
         phone:
           type: string
           maxLength: 30
@@ -1692,41 +2289,6 @@ components:
           type: string
           maxLength: 255
         is_available_for_donation:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-    PatchedSliderItemAdmin:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        title:
-          type: string
-          maxLength: 255
-        description:
-          type: string
-        image:
-          type: string
-          format: uri
-        link_url:
-          oneOf:
-          - type: string
-            format: uri
-            maxLength: 200
-          - type: string
-            maxLength: 0
-        display_order:
-          type: integer
-          maximum: 2147483647
-          minimum: 0
-        is_published:
           type: boolean
         created_at:
           type: string
@@ -1752,10 +2314,6 @@ components:
         name:
           type: string
           maxLength: 150
-        profile_image:
-          type: string
-          format: uri
-          nullable: true
         phone:
           type: string
           maxLength: 30
@@ -1783,73 +2341,37 @@ components:
       - name
       - role
       - updated_at
-    SliderItem:
+    Registration:
       type: object
       properties:
-        id:
-          type: integer
-          readOnly: true
-        title:
+        email:
           type: string
-          readOnly: true
-        description:
+          format: email
+        name:
           type: string
-          readOnly: true
-        image:
+          maxLength: 150
+        phone:
           type: string
-          format: uri
-          nullable: true
-          readOnly: true
-        link_url:
+          maxLength: 30
+        blood_group:
+          $ref: '#/components/schemas/BloodGroupEnum'
+        password:
           type: string
-          format: uri
-          readOnly: true
+          writeOnly: true
       required:
-      - description
-      - id
-      - image
-      - link_url
-      - title
-    SliderItemAdmin:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-        title:
-          type: string
-          maxLength: 255
-        description:
-          type: string
-        image:
-          type: string
-          format: uri
-        link_url:
-          oneOf:
-          - type: string
-            format: uri
-            maxLength: 200
-          - type: string
-            maxLength: 0
-        display_order:
-          type: integer
-          maximum: 2147483647
-          minimum: 0
-        is_published:
-          type: boolean
-        created_at:
-          type: string
-          format: date-time
-          readOnly: true
-        updated_at:
-          type: string
-          format: date-time
-          readOnly: true
-      required:
-      - created_at
-      - id
-      - image
-      - updated_at
+      - blood_group
+      - email
+      - name
+      - password
+      - phone
+    RoleEnum:
+      enum:
+      - USER
+      - ADMIN
+      type: string
+      description: |-
+        * `USER` - User
+        * `ADMIN` - Admin
     StatusEnum:
       enum:
       - ACTIVE
@@ -1885,4 +2407,6 @@ tags:
 - name: Public Content
   description: Public organization content.
 - name: Administration
-  description: Administrator-only content management.
+  description: User, request, and audit oversight for administrators.
+- name: Notifications
+  description: Private notifications for the signed-in user.

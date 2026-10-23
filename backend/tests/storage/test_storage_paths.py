@@ -1,12 +1,10 @@
-from apps.content.models import FoundingMember, SliderItem
+from apps.content.models import FoundingMember
 from apps.profiles.models import Profile
 from infrastructure.storage.paths import (
     FOUNDING_MEMBER_PATH,
     PROFILE_PATH,
-    SLIDER_PATH,
     founding_member_upload_path,
     profile_upload_path,
-    slider_upload_path,
 )
 
 
@@ -23,7 +21,5 @@ def test_profile_upload_paths_are_unique_and_do_not_trust_user_filenames():
 
 def test_content_upload_paths_use_their_expected_prefixes():
     founding_path = founding_member_upload_path(FoundingMember(), "member.webp")
-    slider_path = slider_upload_path(SliderItem(), "slider.jpeg")
 
     assert founding_path.startswith(f"{FOUNDING_MEMBER_PATH}/")
-    assert slider_path.startswith(f"{SLIDER_PATH}/")
