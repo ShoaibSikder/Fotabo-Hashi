@@ -16,7 +16,7 @@ django-cors-headers>=4.9,<5.0
 gunicorn>=23.0,<24.0
 whitenoise>=6.9,<7.0
 Pillow>=13.0,<14.0
-supabase>=2.0,<3.0
+supabase>=2.33.0,<3.0
 requests>=2.32,<3.0
 
 # Caching and rate limiting
