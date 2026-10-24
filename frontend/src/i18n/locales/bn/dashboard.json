@@ -1,0 +1,16 @@
+
+{
+  "dashboard": "ড্যাশবোর্ড",
+  "overview": "আপনার অবদানের সংক্ষিপ্ত চিত্র",
+  "donorCard": "আপনার রক্তদাতা কার্ড",
+  "totalDonations": "রক্তদান",
+  "openRequests": "চলমান অনুরোধ",
+  "rank": "কমিউনিটির অবস্থান",
+  "recentRequests": "সাম্প্রতিক অনুরোধ",
+  "quickActions": "দ্রুত কাজ",
+  "searchDonors": "রক্তদাতা খুঁজুন",
+  "createRequest": "অনুরোধ তৈরি",
+  "updateProfile": "প্রোফাইল হালনাগাদ",
+  "yourJourney": "আপনার পথচলা গুরুত্বপূর্ণ",
+  "completeProfile": "প্রয়োজনে আপনাকে খুঁজে পেতে রক্তদাতা প্রোফাইল সম্পূর্ণ করুন।"
+}
