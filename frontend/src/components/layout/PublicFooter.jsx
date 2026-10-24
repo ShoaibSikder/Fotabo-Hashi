@@ -31,30 +31,22 @@ const quickLinks = [
 const developerSocialLinks = [
   {
     label: "Portfolio",
-    href:
-      import.meta.env.VITE_DEVELOPER_PORTFOLIO_URL ||
-      "https://shoaibsikderportfolio.vercel.app",
+    href: "https://shoaibsikderportfolio.vercel.app",
     Icon: Globe2,
   },
   {
     label: "Facebook",
-    href:
-      import.meta.env.VITE_DEVELOPER_FACEBOOK_URL ||
-      "https://www.facebook.com/shoaib.sikder.35",
+    href: "https://www.facebook.com/shoaib.sikder.35",
     Icon: Facebook,
   },
   {
     label: "LinkedIn",
-    href:
-      import.meta.env.VITE_DEVELOPER_LINKEDIN_URL ||
-      "https://www.linkedin.com/in/md-shoaib-sikder-232abb3b3/",
+    href: "https://www.linkedin.com/in/md-shoaib-sikder-232abb3b3/",
     Icon: Linkedin,
   },
   {
     label: "GitHub",
-    href:
-      import.meta.env.VITE_DEVELOPER_GITHUB_URL ||
-      "https://github.com/ShoaibSikder",
+    href: "https://github.com/ShoaibSikder",
     Icon: Github,
   },
 ];

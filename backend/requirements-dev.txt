@@ -1,0 +1,12 @@
+-r requirements.txt
+
+# Test tooling
+pytest>=9.0,<10.0
+pytest-django>=4.14,<5.0
+factory-boy>=3.3,<4.0
+
+# Code quality tooling
+ruff>=0.8,<1.0
+black>=24.0,<26.0
+pre-commit>=4.0,<5.0
+pip-audit>=2.9,<3.0

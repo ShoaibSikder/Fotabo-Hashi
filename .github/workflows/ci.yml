@@ -51,11 +51,13 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
       - name: Ruff
         run: ruff check .
       - name: Black
         run: black --check .
+      - name: Audit Python dependencies
+        run: pip-audit -r requirements.txt
       - name: Django checks
         run: python manage.py check
       - name: Tests
@@ -81,6 +83,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install dependencies
         run: npm ci
+      - name: Audit npm dependencies
+        run: npm audit --audit-level=moderate
       - name: Lint
         run: npm run lint
       - name: Production build
