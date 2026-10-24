@@ -1,0 +1,61 @@
+
+:root {
+  color-scheme: light;
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --highlight: #ffffff;
+  --shadow: #e2e8f0;
+  --red: #b91c1c;
+  --red-deep: #7f1d1d;
+  --red-soft: #fdecec;
+  --ink: #0f172a;
+  --muted: #475569;
+  --line: #e2e8f0;
+  --radius-card: 16px;
+  --radius-control: 12px;
+  --shadow-raised: 0 1px 3px rgba(15, 23, 42, 0.06);
+  --shadow-raised-small: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-inset: none;
+}
+
+.neu {
+  background: var(--surface);
+  box-shadow: var(--shadow-raised);
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-card);
+}
+
+.neu-in {
+  background: var(--surface);
+  box-shadow: var(--shadow-inset);
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-control);
+}
+
+.neu-btn {
+  display: inline-flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  border-radius: var(--radius-control);
+  background: var(--surface);
+  box-shadow: var(--shadow-raised-small);
+  padding: 0.7rem 1.15rem;
+  font-weight: 700;
+  color: var(--red-deep);
+  transition: color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+  cursor: pointer;
+}
+
+.neu-btn:hover { color: var(--red); background: #f8fafc; box-shadow: 0 2px 5px rgba(15, 23, 42, 0.08); }
+.neu-btn:active { box-shadow: var(--shadow-raised-small); }
+
+.neu-red {
+  color: white;
+  background: #b91c1c;
+  border-color: #b91c1c;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.neu-red:hover { color: white; background: #991b1b; border-color: #991b1b; }
