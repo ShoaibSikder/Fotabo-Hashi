@@ -22,7 +22,6 @@ requests>=2.32,<3.0
 # Caching and background tasks
 redis>=5.0,<7.0
 django-redis>=5.4,<6.0
-celery>=5.4,<6.0
 sentry-sdk>=2.0,<3.0
 
 # Testing

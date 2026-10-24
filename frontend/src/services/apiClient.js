@@ -2,6 +2,75 @@ import { API_ENDPOINTS } from './endpointConfig.js';
 import { getCsrfToken, readCsrfCookie } from './csrfService.js';
 
 const REQUEST_TIMEOUT_MS = 30_000;
+const MAX_SESSION_CACHE_ENTRIES = 250;
+let csrfTokenRequest = null;
+let cachedCsrfToken = '';
+let refreshRequest = null;
+let sessionCacheGeneration = 0;
+const sessionGetCache = new Map();
+const pendingGetRequests = new Map();
+
+const NEVER_CACHE_GET = [
+  API_ENDPOINTS.me,
+  API_ENDPOINTS.health,
+  API_ENDPOINTS.notifications,
+];
+
+export function clearApiCache() {
+  sessionCacheGeneration += 1;
+  sessionGetCache.clear();
+  pendingGetRequests.clear();
+}
+
+function canCacheGet(url) {
+  return !NEVER_CACHE_GET.some((endpoint) => url === endpoint || url.startsWith(`${endpoint}?`));
+}
+
+function rememberGet(url, value) {
+  sessionGetCache.delete(url);
+  sessionGetCache.set(url, value);
+  if (sessionGetCache.size > MAX_SESSION_CACHE_ENTRIES) {
+    const oldestKey = sessionGetCache.keys().next().value;
+    sessionGetCache.delete(oldestKey);
+  }
+}
+
+function getCsrfTokenOnce() {
+  const cookieToken = readCsrfCookie();
+  if (cookieToken) {
+    cachedCsrfToken = cookieToken;
+    return Promise.resolve(cookieToken);
+  }
+  if (cachedCsrfToken) return Promise.resolve(cachedCsrfToken);
+  if (!csrfTokenRequest) {
+    csrfTokenRequest = getCsrfToken()
+      .then((token) => {
+        cachedCsrfToken = token;
+        return token;
+      })
+      .finally(() => {
+        csrfTokenRequest = null;
+      });
+  }
+  return csrfTokenRequest;
+}
+
+export function warmCsrfToken() {
+  void getCsrfTokenOnce().catch(() => {});
+}
+
+function refreshSessionOnce(timeoutMs) {
+  if (!refreshRequest) {
+    refreshRequest = apiRequest(API_ENDPOINTS.refresh, {
+      method: 'POST',
+      retry: false,
+      timeoutMs,
+    }).finally(() => {
+      refreshRequest = null;
+    });
+  }
+  return refreshRequest;
+}
 
 const STATUS_MESSAGES = {
   400: 'Please review the information and try again.',
@@ -64,7 +133,37 @@ function apiErrorFromResponse(body, response) {
   });
 }
 
-export async function apiRequest(url, {
+export function apiRequest(url, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
+  const shouldCache = method === 'GET' && canCacheGet(url);
+  if (shouldCache && sessionGetCache.has(url)) {
+    const cached = sessionGetCache.get(url);
+    // Refresh insertion order so frequently revisited pages stay in the cache.
+    rememberGet(url, cached);
+    return Promise.resolve(cached);
+  }
+  const cacheGeneration = sessionCacheGeneration;
+  const pendingKey = `${cacheGeneration}:${url}`;
+  if (shouldCache && pendingGetRequests.has(pendingKey)) return pendingGetRequests.get(pendingKey);
+
+  const request = performApiRequest(url, options);
+  if (!shouldCache) return request;
+
+  const sharedRequest = request
+    .then((value) => {
+      if (cacheGeneration === sessionCacheGeneration) rememberGet(url, value);
+      return value;
+    })
+    .finally(() => {
+      if (pendingGetRequests.get(pendingKey) === sharedRequest) {
+        pendingGetRequests.delete(pendingKey);
+      }
+    });
+  pendingGetRequests.set(pendingKey, sharedRequest);
+  return sharedRequest;
+}
+
+async function performApiRequest(url, {
   method = 'GET',
   body,
   headers = {},
@@ -82,10 +181,11 @@ export async function apiRequest(url, {
   }
 
   const normalizedMethod = method.toUpperCase();
+
   if (!['GET', 'HEAD', 'OPTIONS'].includes(normalizedMethod)) {
     let csrf;
     try {
-      csrf = readCsrfCookie() || await getCsrfToken();
+      csrf = readCsrfCookie() || await getCsrfTokenOnce();
     } catch {
       throw new ApiError('Could not establish a secure connection. Please refresh and try again.', {
         code: 'CSRF_SETUP_FAILED',
@@ -124,7 +224,7 @@ export async function apiRequest(url, {
 
   if (response.status === 401 && retry && url !== API_ENDPOINTS.login && url !== API_ENDPOINTS.refresh) {
     try {
-      await apiRequest(API_ENDPOINTS.refresh, { method: 'POST', retry: false, timeoutMs });
+      await refreshSessionOnce(timeoutMs);
       return apiRequest(url, { method, body, headers, retry: false, signal, timeoutMs });
     } catch {
       // Keep the original 401 response; callers can clear the session or show it inline.
@@ -133,7 +233,13 @@ export async function apiRequest(url, {
 
   const bodyData = response.status === 204 ? null : await response.json().catch(() => null);
   if (!response.ok) throw apiErrorFromResponse(bodyData, response);
-  return bodyData?.data ?? bodyData;
+  const result = bodyData?.data ?? bodyData;
+  if (
+    !['GET', 'HEAD', 'OPTIONS'].includes(normalizedMethod)
+    && url !== API_ENDPOINTS.refresh
+    && url !== API_ENDPOINTS.csrf
+  ) clearApiCache();
+  return result;
 }
 
 export function apiGet(url, options) { return apiRequest(url, options); }

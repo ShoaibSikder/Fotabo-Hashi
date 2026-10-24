@@ -79,6 +79,29 @@ class TestBloodRequestAPI:
         assert response.data["data"]["count"] == 1
         assert response.data["data"]["results"][0]["id"] == own_request.id
 
+    def test_dashboard_summary_returns_counts_and_only_own_recent_requests(self):
+        active_request = self.create_request()
+        fulfilled_request = self.create_request(status="FULFILLED")
+        cancelled_request = self.create_request(status="CANCELLED")
+        other_request = self.create_request(
+            requester=self.other_user,
+            status="ACTIVE",
+        )
+
+        response = self.client.get("/api/v1/blood-requests/mine/summary/")
+
+        assert response.status_code == 200
+        summary = response.data["data"]
+        assert summary["total"] == 3
+        assert summary["active"] == 1
+        assert summary["fulfilled"] == 1
+        assert {row["id"] for row in summary["recent_requests"]} == {
+            active_request.id,
+            fulfilled_request.id,
+            cancelled_request.id,
+        }
+        assert other_request.id not in {row["id"] for row in summary["recent_requests"]}
+
     def test_user_can_view_request(self):
         blood_request = self.create_request()
         response = self.client.get(f"/api/v1/blood-requests/{blood_request.id}/")

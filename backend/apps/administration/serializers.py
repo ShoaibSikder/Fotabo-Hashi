@@ -5,24 +5,7 @@ from rest_framework import serializers
 from apps.content.models import (
     FoundingMember,
     Notice,
-    OrganizationInformation,
 )
-
-
-class OrganizationInformationAdminSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OrganizationInformation
-        fields = [
-            "id",
-            "name",
-            "slogan",
-            "description",
-            "address",
-            "email",
-            "phone",
-            "updated_at",
-        ]
-        read_only_fields = ["id", "updated_at"]
 
 
 class NoticeAdminSerializer(serializers.ModelSerializer):

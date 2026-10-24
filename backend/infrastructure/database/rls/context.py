@@ -10,14 +10,17 @@ from .constants import (
 )
 
 
-def _set_config(name: str, value: str) -> None:
+def _set_configs(values: dict[str, str]) -> None:
+    """Set several PostgreSQL RLS settings in one database round trip."""
     # Do not open a database connection merely to clean up a request that did
     # not use one (for example the health endpoint).
     if connection.vendor != "postgresql" or connection.connection is None:
         return
 
+    assignments = ", ".join("set_config(%s, %s, false)" for _ in values)
+    params = [item for pair in values.items() for item in pair]
     with connection.cursor() as cursor:
-        cursor.execute("SELECT set_config(%s, %s, false)", [name, value])
+        cursor.execute(f"SELECT {assignments}", params)
 
 
 def set_rls_context(
@@ -27,26 +30,43 @@ def set_rls_context(
     if connection.vendor != "postgresql":
         return
     connection.ensure_connection()
-    _set_config(RLS_USER_ID, str(user_id or ""))
-    _set_config(RLS_IS_ADMIN, "true" if is_admin else "false")
-    _set_config(RLS_IS_AUTHENTICATED, "true" if is_authenticated else "false")
-    _set_config(RLS_LOGIN_EMAIL, "")
+    _set_configs(
+        {
+            RLS_USER_ID: str(user_id or ""),
+            RLS_IS_ADMIN: "true" if is_admin else "false",
+            RLS_IS_AUTHENTICATED: "true" if is_authenticated else "false",
+            RLS_LOGIN_EMAIL: "",
+        }
+    )
 
 
 def set_login_context(email: str) -> None:
     """Allow the credential verifier to fetch only the submitted email row."""
-    set_rls_context(user_id=None, is_admin=False, is_authenticated=False)
-    _set_config(RLS_LOGIN_EMAIL, email.strip().lower())
+    if connection.vendor != "postgresql":
+        return
+    connection.ensure_connection()
+    _set_configs(
+        {
+            RLS_USER_ID: "",
+            RLS_IS_ADMIN: "false",
+            RLS_IS_AUTHENTICATED: "false",
+            RLS_LOGIN_EMAIL: email.strip().lower(),
+        }
+    )
 
 
 def clear_rls_context() -> None:
     """Reset identity values before a persistent database connection is reused."""
     if connection.vendor != "postgresql" or connection.connection is None:
         return
-    _set_config(RLS_USER_ID, "")
-    _set_config(RLS_IS_ADMIN, "false")
-    _set_config(RLS_IS_AUTHENTICATED, "false")
-    _set_config(RLS_LOGIN_EMAIL, "")
+    _set_configs(
+        {
+            RLS_USER_ID: "",
+            RLS_IS_ADMIN: "false",
+            RLS_IS_AUTHENTICATED: "false",
+            RLS_LOGIN_EMAIL: "",
+        }
+    )
 
 
 @contextmanager
@@ -56,16 +76,16 @@ def temporary_admin_context():
         yield
         return
 
+    setting_names = (
+        RLS_USER_ID,
+        RLS_IS_ADMIN,
+        RLS_IS_AUTHENTICATED,
+        RLS_LOGIN_EMAIL,
+    )
     with connection.cursor() as cursor:
         cursor.execute(
-            """
-            SELECT
-                current_setting(%s, true),
-                current_setting(%s, true),
-                current_setting(%s, true),
-                current_setting(%s, true)
-            """,
-            [RLS_USER_ID, RLS_IS_ADMIN, RLS_IS_AUTHENTICATED, RLS_LOGIN_EMAIL],
+            "SELECT " + ", ".join("current_setting(%s, true)" for _ in setting_names),
+            setting_names,
         )
         previous = cursor.fetchone()
 
@@ -73,7 +93,13 @@ def temporary_admin_context():
     try:
         yield
     finally:
-        _set_config(RLS_USER_ID, previous[0] or "")
-        _set_config(RLS_IS_ADMIN, previous[1] or "false")
-        _set_config(RLS_IS_AUTHENTICATED, previous[2] or "false")
-        _set_config(RLS_LOGIN_EMAIL, previous[3] or "")
+        _set_configs(
+            {
+                name: value or fallback
+                for name, value, fallback in zip(
+                    setting_names,
+                    previous,
+                    ("", "false", "false", ""),
+                )
+            }
+        )

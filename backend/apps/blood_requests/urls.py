@@ -5,9 +5,15 @@ from .views import (
     BloodRequestDetailView,
     BloodRequestFulfillView,
     BloodRequestListCreateView,
+    MyBloodRequestSummaryView,
 )
 
 urlpatterns = [
+    path(
+        "mine/summary/",
+        MyBloodRequestSummaryView.as_view(),
+        name="my-blood-request-summary",
+    ),
     path("", BloodRequestListCreateView.as_view(), name="blood-request-list-create"),
     path("<int:pk>/", BloodRequestDetailView.as_view(), name="blood-request-detail"),
     path(

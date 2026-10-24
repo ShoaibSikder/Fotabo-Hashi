@@ -32,7 +32,7 @@ class BloodRequestSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_is_owner(self, obj):
+    def get_is_owner(self, obj) -> bool:
         request = self.context.get("request")
         return bool(
             request

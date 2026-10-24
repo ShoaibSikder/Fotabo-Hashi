@@ -1,10 +1,10 @@
 from datetime import timedelta
 from urllib.parse import quote
 
-from django.db import transaction
-from django.db.models import Count, F, OuterRef, Q, Subquery
+from django.db import connection, transaction
+from django.db.models import F, OuterRef, Q, Subquery
 from django.utils import timezone
-from drf_spectacular.utils import extend_schema
+from drf_spectacular.utils import OpenApiTypes, extend_schema
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -20,6 +20,7 @@ from apps.leaderboard.review_models import DonationCountReview
 from apps.notifications.models import NotificationEvent
 from apps.notifications.services import create_notification, notify_administrators
 from apps.profiles.models import Profile
+from infrastructure.cache.services import delete_cached, get_cached, set_cached
 
 from .permissions import IsAdminRole
 from .system_serializers import (
@@ -41,37 +42,66 @@ def _audit(request, *, action, resource_type, resource_id, description):
     )
 
 
+ADMIN_OVERVIEW_CACHE_KEY = "administration:overview:v1"
+
+
 @extend_schema(tags=["Administration"])
 class AdminOverviewView(APIView):
     permission_classes = [IsAdminRole]
 
+    @extend_schema(responses=OpenApiTypes.OBJECT, tags=["Administration"])
     def get(self, request):
+        cached_overview = get_cached(ADMIN_OVERVIEW_CACHE_KEY)
+        if cached_overview is not None:
+            return Response(cached_overview)
+
         week_ago = timezone.now() - timedelta(days=7)
-        user_stats = User.objects.aggregate(
-            total=Count("id"),
-            active=Count("id", filter=Q(is_active=True)),
-            recent=Count("id", filter=Q(created_at__gte=week_ago)),
-        )
-        profile_stats = Profile.objects.aggregate(
-            donors=Count("id", filter=Q(is_available_for_donation=True)),
-        )
-        request_stats = BloodRequest.objects.aggregate(
-            total=Count("id"),
-            active=Count("id", filter=Q(status=BloodRequestStatus.ACTIVE)),
-            recent=Count("id", filter=Q(created_at__gte=week_ago)),
-        )
-        return Response(
-            {
-                "users": user_stats["total"],
-                "active_users": user_stats["active"],
-                "donors": profile_stats["donors"],
-                "blood_requests": request_stats["total"],
-                "active_blood_requests": request_stats["active"],
-                "audit_events": AuditLog.objects.count(),
-                "users_last_7_days": user_stats["recent"],
-                "requests_last_7_days": request_stats["recent"],
-            }
-        )
+        user_table = connection.ops.quote_name(User._meta.db_table)
+        profile_table = connection.ops.quote_name(Profile._meta.db_table)
+        request_table = connection.ops.quote_name(BloodRequest._meta.db_table)
+        audit_table = connection.ops.quote_name(AuditLog._meta.db_table)
+        with connection.cursor() as cursor:
+            cursor.execute(
+                f"""
+                SELECT
+                    users.total AS users,
+                    users.active AS active_users,
+                    profiles.donors AS donors,
+                    requests.total AS blood_requests,
+                    requests.active AS active_blood_requests,
+                    audits.total AS audit_events,
+                    users.recent AS users_last_7_days,
+                    requests.recent AS requests_last_7_days
+                FROM (
+                    SELECT
+                        COUNT(*) AS total,
+                        COUNT(*) FILTER (WHERE is_active) AS active,
+                        COUNT(*) FILTER (WHERE created_at >= %s) AS recent
+                    FROM {user_table}
+                ) AS users
+                CROSS JOIN (
+                    SELECT COUNT(*) FILTER (WHERE is_available_for_donation) AS donors
+                    FROM {profile_table}
+                ) AS profiles
+                CROSS JOIN (
+                    SELECT
+                        COUNT(*) AS total,
+                        COUNT(*) FILTER (WHERE status = %s) AS active,
+                        COUNT(*) FILTER (WHERE created_at >= %s) AS recent
+                    FROM {request_table}
+                ) AS requests
+                CROSS JOIN (
+                    SELECT COUNT(*) AS total FROM {audit_table}
+                ) AS audits
+                """,
+                [week_ago, BloodRequestStatus.ACTIVE, week_ago],
+            )
+            columns = [column.name for column in cursor.description]
+            overview = dict(zip(columns, cursor.fetchone(), strict=True))
+        # Dashboard aggregates need not be exact to the second. A short shared
+        # cache avoids rescanning growing tables on every admin page visit.
+        set_cached(ADMIN_OVERVIEW_CACHE_KEY, overview, timeout=60)
+        return Response(overview)
 
 
 class AdminUserListView(generics.ListCreateAPIView):
@@ -183,7 +213,7 @@ class AdminUserListView(generics.ListCreateAPIView):
         )
 
 
-class AdminUserDetailView(generics.RetrieveUpdateAPIView):
+class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAdminRole]
     serializer_class = AdminUserSerializer
 
@@ -276,6 +306,36 @@ class AdminUserDetailView(generics.RetrieveUpdateAPIView):
                 resource_id=updated.pk,
                 description=f"Administrator updated profile for user {updated.pk}.",
             )
+
+    @transaction.atomic
+    def perform_destroy(self, instance):
+        if instance.pk == self.request.user.pk:
+            raise ValidationError(
+                {"detail": "You cannot delete your own administrator account."}
+            )
+
+        active_admins = list(
+            User.objects.select_for_update()
+            .filter(role=UserRole.ADMIN, is_active=True)
+            .order_by("id")
+        )
+        target = User.objects.select_for_update().get(pk=instance.pk)
+        if target.role == UserRole.ADMIN and target.is_active:
+            if len(active_admins) <= 1:
+                raise ValidationError(
+                    {"detail": "The last active administrator cannot be deleted."}
+                )
+
+        deleted_user_id = target.pk
+        _audit(
+            self.request,
+            action=AuditAction.DELETE,
+            resource_type="User",
+            resource_id=deleted_user_id,
+            description=f"Administrator deleted account {deleted_user_id}.",
+        )
+        target.delete()
+        delete_cached(ADMIN_OVERVIEW_CACHE_KEY)
 
 
 class AdminBloodRequestListCreateView(generics.ListCreateAPIView):

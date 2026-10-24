@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.utils import timezone
+from drf_spectacular.utils import OpenApiTypes, extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -14,6 +15,8 @@ class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Notification.objects.none()
         return Notification.objects.filter(recipient=self.request.user).order_by(
             "-created_at", "-id"
         )
@@ -37,6 +40,7 @@ class NotificationReadView(generics.GenericAPIView):
 class NotificationReadAllView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
+    @extend_schema(request=None, responses=OpenApiTypes.OBJECT)
     @transaction.atomic
     def post(self, request):
         updated = Notification.objects.filter(

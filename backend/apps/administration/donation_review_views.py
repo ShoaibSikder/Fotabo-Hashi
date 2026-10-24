@@ -53,6 +53,11 @@ class AdminDonationCountReviewListView(generics.ListAPIView):
 class AdminDonationCountReviewActionView(APIView):
     permission_classes = [IsAdminRole]
 
+    @extend_schema(
+        request=None,
+        responses=DonationCountReviewSerializer,
+        tags=["Administration", "Donation reviews"],
+    )
     @transaction.atomic
     def post(self, request, pk, action):
         if action not in {"approve", "reject"}:

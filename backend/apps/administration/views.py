@@ -1,8 +1,5 @@
 from django.db import transaction
-from drf_spectacular.utils import extend_schema
-from rest_framework import generics, status
-from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
 
 from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
@@ -10,13 +7,11 @@ from apps.audit.utils import get_client_ip
 from apps.content.models import (
     FoundingMember,
     Notice,
-    OrganizationInformation,
 )
 from apps.notifications.models import NotificationEvent
 from apps.notifications.services import notify_users
 from infrastructure.cache.invalidation import (
     invalidate_founding_members,
-    invalidate_organization_content,
     invalidate_public_notices,
 )
 
@@ -24,9 +19,7 @@ from .permissions import IsAdminRole
 from .serializers import (
     FoundingMemberAdminSerializer,
     NoticeAdminSerializer,
-    OrganizationInformationAdminSerializer,
 )
-from .services import create_or_update_organization_information
 
 
 class AuditAdminMixin:
@@ -43,56 +36,6 @@ class AuditAdminMixin:
             user_agent=self.request.META.get("HTTP_USER_AGENT", ""),
             metadata=metadata or {},
         )
-
-
-@extend_schema(
-    tags=["Administration"],
-    request=OrganizationInformationAdminSerializer,
-    responses=OrganizationInformationAdminSerializer,
-)
-class OrganizationInformationAdminView(AuditAdminMixin, APIView):
-    permission_classes = [IsAdminRole]
-    resource_type = "OrganizationInformation"
-
-    def get(self, request):
-        organization = OrganizationInformation.objects.first()
-        if organization is None:
-            return Response(
-                {"detail": "Organization information has not been configured."},
-                status=status.HTTP_404_NOT_FOUND,
-            )
-        return Response(OrganizationInformationAdminSerializer(organization).data)
-
-    def _upsert(self, request, *, partial):
-        existing = OrganizationInformation.objects.first()
-        serializer = OrganizationInformationAdminSerializer(
-            existing, data=request.data, partial=partial
-        )
-        serializer.is_valid(raise_exception=True)
-        organization = create_or_update_organization_information(
-            data=serializer.validated_data
-        )
-        invalidate_organization_content()
-        self.audit(
-            action=AuditAction.CREATE if existing is None else AuditAction.UPDATE,
-            instance=organization,
-            description=(
-                "Administrator created organization information."
-                if existing is None
-                else "Administrator updated organization information."
-            ),
-            metadata={"name": organization.name},
-        )
-        return Response(OrganizationInformationAdminSerializer(organization).data)
-
-    def post(self, request):
-        return self._upsert(request, partial=False)
-
-    def put(self, request):
-        return self._upsert(request, partial=False)
-
-    def patch(self, request):
-        return self._upsert(request, partial=True)
 
 
 class AuditedContentMixin(AuditAdminMixin):

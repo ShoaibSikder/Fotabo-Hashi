@@ -134,6 +134,24 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function deleteUser() {
+    if (!selected || !window.confirm(t('confirmDeleteAccount', { name: selected.name || selected.email }))) return;
+    setSaving(true);
+    setError('');
+    setNotice('');
+    try {
+      await apiDelete(API_ENDPOINTS.adminUserDetail(selected.id));
+      setRows((current) => current.filter((row) => row.id !== selected.id));
+      setCount((current) => Math.max(0, current - 1));
+      setSelected(null);
+      setNotice(t('accountDeleted'));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
   async function recordDonation(event) {
     event.preventDefault();
     if (!selected) return;
@@ -174,8 +192,8 @@ export default function AdminUsersPage() {
       {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
       {notice && <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">{notice}</p>}
 
-      <div className="grid items-start gap-5 2xl:grid-cols-[1.15fr_.85fr]">
-        <Card className="!border-slate-200 !bg-white !p-4 !shadow-sm sm:!p-5">
+      <div className="grid min-w-0 items-start gap-5 2xl:grid-cols-[1.15fr_.85fr]">
+        <Card className="!min-w-0 !border-slate-200 !bg-white !p-4 !shadow-sm sm:!p-5">
           <form onSubmit={(event) => { event.preventDefault(); setPage(1); setSearch(searchText.trim()); }} className="flex w-full items-center gap-2">
             <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input aria-label={t('searchPeopleHint')} value={searchText} onChange={(event) => setSearchText(event.target.value)} placeholder={t('searchPeopleHint')} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10" /></div>
             <Button type="submit" aria-label={t('search')} className="!min-h-11 !w-11 !shrink-0 !justify-center !rounded-xl !bg-slate-50 !px-0 !shadow-none sm:!w-auto sm:!px-4"><Search size={17} aria-hidden="true" /><span className="sr-only sm:not-sr-only">{t('search')}</span></Button>
@@ -189,7 +207,7 @@ export default function AdminUsersPage() {
             </FilterMenu>
           </form>
           {loading ? <div className="py-12"><Spinner label="Loading accounts…" /></div> : rows.length ? <>
-            <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100" role="region" aria-label={t('peopleAndDonors')} tabIndex="0"><table className="w-full min-w-[1160px] whitespace-nowrap text-left text-sm"><thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100"><th scope="col" className="px-3 py-3">{t('fullName')}</th><th scope="col" className="px-3 py-3">{t('bloodGroup')}</th><th scope="col" className="px-3 py-3">{t('phoneNumber')}</th><th scope="col" className="px-3 py-3">{t('adminRole')}</th><th scope="col" className="px-3 py-3">{t('status')}</th><th scope="col" className="px-3 py-3">{t('donor')}</th><th scope="col" className="px-3 py-3">{t('approvedLeaderboardCount')}</th><th scope="col" className="px-3 py-3">{t('actions')}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/70 ${selected?.id === row.id ? 'bg-rose-50/70' : ''}`}><td className="px-3 py-3 font-bold text-slate-800">{row.name || t('communityDonor')}</td><td className="px-3 py-3 text-slate-600">{row.blood_group || '—'}</td><td className="px-3 py-3 text-slate-600">{row.phone || '—'}</td><td className="px-3 py-3"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{row.role === 'ADMIN' && <Shield size={12} />}{t(row.role === 'ADMIN' ? 'adminRole' : 'userRole')}</span></td><td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${row.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{t(row.is_active ? 'active' : 'disabled')}</span></td><td className="px-3 py-3 text-xs font-semibold text-slate-600">{t(row.is_available_for_donation ? 'available' : 'notSpecified')}</td><td className="px-3 py-3 text-xs font-extrabold text-brand">{row.donation_count || 0}</td><td className="px-3 py-3"><Button type="button" variant="secondary" onClick={() => selectUser(row)} className="!min-h-9 !rounded-lg !px-3">{t('viewDetails')}</Button></td></tr>)}</tbody></table></div>
+            <div className="mt-4 block w-full max-w-full touch-pan-x overflow-x-auto overscroll-x-contain rounded-xl border border-slate-100" role="region" aria-label={t('peopleAndDonors')} tabIndex="0"><table className="w-full min-w-[1160px] whitespace-nowrap text-left text-sm"><thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100"><th scope="col" className="px-3 py-3">{t('fullName')}</th><th scope="col" className="px-3 py-3">{t('bloodGroup')}</th><th scope="col" className="px-3 py-3">{t('phoneNumber')}</th><th scope="col" className="px-3 py-3">{t('adminRole')}</th><th scope="col" className="px-3 py-3">{t('status')}</th><th scope="col" className="px-3 py-3">{t('donor')}</th><th scope="col" className="px-3 py-3">{t('approvedLeaderboardCount')}</th><th scope="col" className="px-3 py-3">{t('actions')}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/70 ${selected?.id === row.id ? 'bg-rose-50/70' : ''}`}><td className="px-3 py-3 font-bold text-slate-800">{row.name || t('communityDonor')}</td><td className="px-3 py-3 text-slate-600">{row.blood_group || '—'}</td><td className="px-3 py-3 text-slate-600">{row.phone || '—'}</td><td className="px-3 py-3"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{row.role === 'ADMIN' && <Shield size={12} />}{t(row.role === 'ADMIN' ? 'adminRole' : 'userRole')}</span></td><td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${row.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{t(row.is_active ? 'active' : 'disabled')}</span></td><td className="px-3 py-3 text-xs font-semibold text-slate-600">{t(row.is_available_for_donation ? 'available' : 'notSpecified')}</td><td className="px-3 py-3 text-xs font-extrabold text-brand">{row.donation_count || 0}</td><td className="px-3 py-3"><Button type="button" variant="secondary" onClick={() => selectUser(row)} className="!min-h-9 !rounded-lg !px-3">{t('viewDetails')}</Button></td></tr>)}</tbody></table></div>
             <div className="mt-4"><Pagination page={page} count={count} onChange={setPage} /></div>
           </> : <div className="py-12 text-center"><UserRound className="mx-auto text-slate-300" size={28} /><p className="mt-3 text-sm font-bold text-slate-700">No accounts found</p><p className="mt-1 text-xs text-slate-500">Adjust the search or filters and try again.</p></div>}
         </Card>
@@ -212,6 +230,7 @@ export default function AdminUsersPage() {
             <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700"><input type="checkbox" name="is_active" checked={Boolean(form.is_active)} onChange={updateField} className="h-4 w-4 accent-red-700" />Account is active</label>
             <label className="flex cursor-pointer items-center gap-3 rounded-xl bg-slate-50 p-3 text-sm font-semibold text-slate-700"><input type="checkbox" name="is_available_for_donation" checked={Boolean(form.is_available_for_donation)} onChange={updateField} className="h-4 w-4 accent-red-700" />Available for donation</label>
             <Button type="submit" variant="primary" loading={saving} className="w-full !rounded-xl"><Check size={16} /> Save account</Button>
+            <Button type="button" variant="secondary" loading={saving} disabled={saving} onClick={deleteUser} className="w-full !rounded-xl !text-red-700 hover:!bg-red-50"><Trash2 size={16} />{t('deleteAccount')}</Button>
           </form> : <div className="grid min-h-64 place-items-center rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-6 text-center"><div><UserRound className="mx-auto text-slate-300" size={30} /><p className="mt-3 text-sm font-bold text-slate-700">Select an account</p></div></div>}
           {selected?.role === 'USER' && <section className="mt-7 border-t border-slate-100 pt-5">
             <div className="mb-4 flex items-center justify-between gap-3"><h3 className="font-heading font-extrabold text-slate-900">{t('verifiedDonations')}</h3><span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-sm font-extrabold text-brand"><Droplet size={14} />{selected.donation_count || 0}</span></div>

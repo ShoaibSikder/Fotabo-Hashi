@@ -267,24 +267,20 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CELERY_BROKER_URL = env(
-    "CELERY_BROKER_URL",
-    default="redis://127.0.0.1:6379/2",
-)
-CELERY_RESULT_BACKEND = env(
-    "CELERY_RESULT_BACKEND",
-    default="redis://127.0.0.1:6379/3",
-)
-CELERY_ACCEPT_CONTENT = ["json"]
-CELERY_TASK_SERIALIZER = "json"
-CELERY_RESULT_SERIALIZER = "json"
-CELERY_TIMEZONE = TIME_ZONE
-CELERY_ENABLE_UTC = True
 SPECTACULAR_SETTINGS = {
     "TITLE": "Fotabo Hashi API",
     "DESCRIPTION": "REST API for the Fotabo Hashi blood donation and donor discovery platform.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "ENUM_NAME_OVERRIDES": {
+        "BloodRequestStatusEnum": "apps.blood_requests.models.BloodRequestStatus",
+        "DonationCountReviewStatusEnum": [
+            ("PENDING", "Pending"),
+            ("APPROVED", "Approved"),
+            ("REJECTED", "Rejected"),
+            ("SUPERSEDED", "Superseded"),
+        ],
+    },
     "TAGS": [
         {"name": "Health", "description": "API health and service status."},
         {

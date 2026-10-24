@@ -26,18 +26,23 @@ export default function AdminDashboardPage() {
     let active = true;
     Promise.allSettled([
       apiGet(API_ENDPOINTS.adminOverview),
-      apiGet(API_ENDPOINTS.adminAudit),
-      apiGet(API_ENDPOINTS.health),
-    ]).then(([overviewResult, activityResult, healthResult]) => {
+      apiGet(`${API_ENDPOINTS.adminAudit}?recent=6`),
+    ]).then(([overviewResult, activityResult]) => {
       if (!active) return;
-      setLoadError([overviewResult, activityResult, healthResult].some((result) => result.status === 'rejected'));
+      setLoadError([overviewResult, activityResult].some((result) => result.status === 'rejected'));
       if (overviewResult.status === 'fulfilled') setOverview(overviewResult.value);
       if (activityResult.status === 'fulfilled') {
         const rows = activityResult.value?.results || activityResult.value || [];
         setActivity(Array.isArray(rows) ? rows.slice(0, 6) : []);
       }
-      if (healthResult.status === 'fulfilled') setHealth(healthResult.value);
     }).finally(() => active && setLoading(false));
+
+    // Readiness checks include remote PostgreSQL, Redis, and storage probes.
+    // Keep that slower status request off the dashboard's initial render path.
+    apiGet(API_ENDPOINTS.health)
+      .then((result) => active && setHealth(result))
+      .catch(() => active && setHealth({ status: 'error' }));
+
     return () => { active = false; };
   }, []);
 

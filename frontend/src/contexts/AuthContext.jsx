@@ -1,8 +1,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { loginRequest, logoutRequest, getCurrentUser, registerRequest } from '../features/authentication/services/authService.js';
-import { apiGet } from '../services/apiClient.js';
-import { API_ENDPOINTS } from '../services/endpointConfig.js';
+import { clearApiCache } from '../services/apiClient.js';
 
 const AuthContext = createContext(null);
 
@@ -13,24 +12,8 @@ export function AuthProvider({ children }) {
   const refreshUser = useCallback(async () => {
     try {
       const current = await getCurrentUser();
-      if (!current) {
-        setUser(null);
-        return null;
-      }
-
-      let profile = null;
-      try {
-        profile = await apiGet(API_ENDPOINTS.profile);
-      } catch {
-        // Keep the authenticated session usable if profile data is unavailable.
-      }
-
-      const sessionUser = {
-        ...current,
-        name: profile?.name || current.name || '',
-      };
-      setUser(sessionUser);
-      return sessionUser;
+      setUser(current || null);
+      return current || null;
     } catch {
       setUser(null);
       return null;
@@ -42,17 +25,32 @@ export function AuthProvider({ children }) {
   useEffect(() => { refreshUser(); }, [refreshUser]);
 
   const login = useCallback(async (credentials) => {
-    await loginRequest(credentials);
+    clearApiCache();
+    const result = await loginRequest(credentials);
+    if (result?.user) {
+      setUser(result.user);
+      setLoading(false);
+      return result.user;
+    }
     return refreshUser();
   }, [refreshUser]);
 
   const register = useCallback(async (details) => {
-    await registerRequest(details);
+    clearApiCache();
+    const result = await registerRequest(details);
+    if (result?.user) {
+      setUser(result.user);
+      setLoading(false);
+      return result.user;
+    }
     return refreshUser();
   }, [refreshUser]);
 
-  const logout = useCallback(async () => {
-    try { await logoutRequest(); } finally { setUser(null); }
+  const logout = useCallback(() => {
+    clearApiCache();
+    setUser(null);
+    setLoading(false);
+    return logoutRequest().catch(() => null);
   }, []);
 
   const clearSession = useCallback(() => setUser(null), []);

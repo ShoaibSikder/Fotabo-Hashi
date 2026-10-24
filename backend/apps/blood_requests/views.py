@@ -1,12 +1,15 @@
-from drf_spectacular.utils import extend_schema
+from django.db.models import Count, Q
+from drf_spectacular.utils import OpenApiTypes, extend_schema
 from rest_framework import generics, permissions
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.notifications.models import NotificationEvent
 from apps.notifications.services import create_notification, notify_administrators
 
 from .filters import BloodRequestFilter
+from .models import BloodRequest, BloodRequestStatus
 from .selectors import get_blood_request_queryset
 from .serializers import BloodRequestSerializer
 from .services import (
@@ -47,6 +50,34 @@ class BloodRequestListCreateView(generics.ListCreateAPIView):
                 "blood_group": serializer.instance.blood_group,
                 "request_id": serializer.instance.pk,
             },
+        )
+
+
+@extend_schema(tags=["Blood Requests"], responses={200: OpenApiTypes.OBJECT})
+class MyBloodRequestSummaryView(APIView):
+    """Return a user's dashboard counts and recent requests in one API call."""
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        own_requests = BloodRequest.objects.filter(requester=request.user)
+        counts = own_requests.aggregate(
+            total=Count("id"),
+            active=Count("id", filter=Q(status=BloodRequestStatus.ACTIVE)),
+            fulfilled=Count("id", filter=Q(status=BloodRequestStatus.FULFILLED)),
+        )
+        recent_requests = get_blood_request_queryset().filter(requester=request.user)[
+            :5
+        ]
+        return Response(
+            {
+                **counts,
+                "recent_requests": BloodRequestSerializer(
+                    recent_requests,
+                    many=True,
+                    context={"request": request},
+                ).data,
+            }
         )
 
 

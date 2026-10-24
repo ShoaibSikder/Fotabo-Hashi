@@ -4,6 +4,12 @@ from infrastructure.database.rls.context import temporary_admin_context
 
 
 class UserManager(BaseUserManager):
+    def get_by_natural_key(self, username):
+        """Load the profile with the user during authentication when available."""
+        return self.select_related("profile").get(
+            **{self.model.USERNAME_FIELD: username}
+        )
+
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("Email address is required.")

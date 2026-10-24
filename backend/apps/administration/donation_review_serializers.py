@@ -35,7 +35,7 @@ class DonationCountReviewSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = fields
 
-    def get_change(self, review):
+    def get_change(self, review) -> str:
         if review.requested_count > review.previous_count:
             return "INCREASE"
         if review.requested_count < review.previous_count:

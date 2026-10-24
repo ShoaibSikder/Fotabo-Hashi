@@ -112,7 +112,7 @@ export default function PublicFooter() {
             className="inline-flex items-center gap-2.5 font-heading text-xl font-extrabold tracking-tight text-white"
           >
             <img
-              src="/images/Fotabo_Hashi_Logo.svg"
+              src="/images/fotabo-hashi-logo.webp"
               alt=""
               className="h-10 w-10 object-contain"
             />

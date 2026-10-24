@@ -44,6 +44,8 @@ class AdminUserDonationListCreateView(generics.ListCreateAPIView):
             )
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return DonationRecord.objects.none()
         self.get_donor()
         return DonationRecord.objects.filter(
             donor_id=self.kwargs["user_pk"]

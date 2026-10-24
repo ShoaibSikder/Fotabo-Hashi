@@ -1,5 +1,7 @@
 from drf_spectacular.utils import extend_schema
 from rest_framework import generics
+from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from apps.audit.models import AuditLog
 
@@ -17,3 +19,21 @@ class AuditLogAdminListView(generics.ListAPIView):
 
     def get_queryset(self):
         return AuditLog.objects.select_related("actor").order_by("-created_at", "-id")
+
+    def list(self, request, *args, **kwargs):
+        recent = request.query_params.get("recent")
+        if recent is None:
+            return super().list(request, *args, **kwargs)
+
+        try:
+            limit = int(recent)
+        except (TypeError, ValueError) as exc:
+            raise ValidationError(
+                {"recent": "Provide an integer from 1 to 20."}
+            ) from exc
+        if not 1 <= limit <= 20:
+            raise ValidationError({"recent": "Provide an integer from 1 to 20."})
+
+        queryset = self.filter_queryset(self.get_queryset())[:limit]
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)

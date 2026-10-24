@@ -37,7 +37,7 @@ class ProfileSerializer(serializers.ModelSerializer):
             "updated_at",
         ]
 
-    def get_donation_count_review_status(self, profile):
+    def get_donation_count_review_status(self, profile) -> str | None:
         return (
             DonationCountReview.objects.filter(user_id=profile.user_id)
             .order_by("-created_at", "-id")

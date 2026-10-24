@@ -51,12 +51,10 @@ export default function AdminLayout({ loading = false }) {
     };
   }, []);
 
-  async function signOut() {
-    try {
-      await logout();
-    } finally {
-      navigate('/', { replace: true });
-    }
+  function signOut() {
+    const pendingLogout = logout();
+    navigate('/', { replace: true });
+    void pendingLogout;
   }
 
   return (
@@ -64,7 +62,7 @@ export default function AdminLayout({ loading = false }) {
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white">
         <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-2 px-3 sm:h-[72px] sm:gap-4 sm:px-6 lg:px-8">
           <NavLink to="/admin/dashboard" className="flex min-w-0 items-center gap-2 sm:gap-3" aria-label="Administration overview">
-            <img src="/images/Fotabo_Hashi_Logo.svg" alt="" className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10" />
+            <img src="/images/fotabo-hashi-logo.webp" alt="" className="h-8 w-8 shrink-0 object-contain sm:h-10 sm:w-10" />
             <span className="min-w-0">
               <span className="block truncate font-heading text-sm font-extrabold leading-5 text-slate-900 sm:text-lg">Fotabo Hashi</span>
               <span className="block truncate text-[9px] font-bold uppercase tracking-[.12em] text-brand sm:text-[10px] sm:tracking-[.16em]">{t('administration')}</span>

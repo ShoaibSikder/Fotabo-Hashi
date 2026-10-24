@@ -23,6 +23,7 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data["success"])
         self.assertEqual(response.data["data"]["user"]["email"], "user@example.com")
+        self.assertEqual(response.data["data"]["user"]["name"], "user")
         self.assertNotIn("access", response.data)
         self.assertNotIn("refresh", response.data)
         self.assertIn("fh_access", response.cookies)
@@ -66,3 +67,4 @@ class AuthenticationTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["email"], "user@example.com")
         self.assertEqual(response.data["role"], UserRole.USER)
+        self.assertEqual(response.data["name"], "user")

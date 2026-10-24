@@ -39,3 +39,28 @@ def test_audit_api_is_admin_only_and_excludes_sensitive_network_data():
     assert "ip_address" not in entry
     assert "user_agent" not in entry
     assert "metadata" not in entry
+
+
+@pytest.mark.django_db
+def test_recent_audit_endpoint_skips_paginated_count_response():
+    admin = User.objects.create_user(
+        email="recent-admin@example.com",
+        password="AdminPassword123!",
+        role=UserRole.ADMIN,
+    )
+    create_audit_log(
+        actor=admin,
+        action=AuditAction.LOGIN,
+        resource_type="Authentication",
+        resource_id=admin.pk,
+        description="Recent event.",
+    )
+    client = APIClient()
+    token = str(RefreshToken.for_user(admin).access_token)
+    client.credentials(HTTP_AUTHORIZATION=f"Bearer {token}")
+
+    response = client.get("/api/v1/admin/audit/?recent=1")
+
+    assert response.status_code == 200
+    assert isinstance(response.data["data"], list)
+    assert len(response.data["data"]) == 1

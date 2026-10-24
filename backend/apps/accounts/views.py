@@ -14,6 +14,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from apps.audit.models import AuditAction
 from apps.audit.services import create_audit_log
 from apps.audit.utils import get_client_ip
+from apps.profiles.models import Profile
 from infrastructure.database.rls.context import set_login_context
 
 from .authentication import CookieOrBearerJWTAuthentication
@@ -50,8 +51,8 @@ class PasswordResetDeliveryUnavailable(APIException):
     default_code = "password_reset_delivery_unavailable"
 
 
-def session_user_data(user):
-    return {"id": user.id, "email": user.email, "role": user.role}
+def session_user_data(user, *, name=""):
+    return {"id": user.id, "email": user.email, "role": user.role, "name": name}
 
 
 @extend_schema(
@@ -80,7 +81,12 @@ class RegistrationView(APIView):
                 {"email": "An account with this email already exists."}
             ) from exc
         response = Response(
-            {"user": session_user_data(user)},
+            {
+                "user": session_user_data(
+                    user,
+                    name=serializer.validated_data["name"],
+                )
+            },
             status=status.HTTP_201_CREATED,
         )
         set_auth_cookies(
@@ -176,11 +182,15 @@ class CsrfTokenView(APIView):
 
 
 class LoginView(TokenObtainPairView):
+    # Login verifies credentials itself; parsing a stale access cookie first is
+    # unnecessary and can reject a valid login before the credentials are read.
+    authentication_classes = []
     permission_classes = [permissions.AllowAny]
     serializer_class = LoginSerializer
     throttle_classes = [LoginRateThrottle]
 
     def post(self, request, *args, **kwargs):
+        CookieOrBearerJWTAuthentication().enforce_csrf(request)
         request._rls_context_active = True
         set_login_context(str(request.data.get("email", "")))
         serializer = self.get_serializer(data=request.data)
@@ -190,8 +200,13 @@ class LoginView(TokenObtainPairView):
         refresh = RefreshToken(tokens["refresh"])
         refresh["remember_me"] = remember_me
         access = refresh.access_token
+        profile = getattr(serializer.user, "profile", None)
+        name = profile.name if profile else ""
         response = Response(
-            {"success": True, "data": {"user": session_user_data(serializer.user)}}
+            {
+                "success": True,
+                "data": {"user": session_user_data(serializer.user, name=name)},
+            }
         )
         set_auth_cookies(
             response,
@@ -293,6 +308,15 @@ class MeView(APIView):
     def get(self, request):
         if not request.user.is_authenticated:
             return Response(status=status.HTTP_204_NO_CONTENT)
+        name = (
+            Profile.objects.filter(user_id=request.user.pk)
+            .values_list("name", flat=True)
+            .first()
+            or ""
+        )
         return Response(
-            {**session_user_data(request.user), "is_active": request.user.is_active}
+            {
+                **session_user_data(request.user, name=name),
+                "is_active": request.user.is_active,
+            }
         )

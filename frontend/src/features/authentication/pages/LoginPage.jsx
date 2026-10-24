@@ -6,6 +6,7 @@ import Button from '../../../components/ui/Button.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import { useAuthCtx } from '../../../contexts/AuthContext.jsx';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
+import { warmCsrfToken } from '../../../services/apiClient.js';
 
 export default function LoginPage() {
   const { login, user } = useAuthCtx();
@@ -39,8 +40,8 @@ export default function LoginPage() {
         <h1 className="mt-2 text-3xl font-extrabold text-brand-dark">{t('login')}</h1>
         <form onSubmit={submit} className="mt-7 space-y-5">
           {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{error}</div>}
-          <Input id="email" label={t('emailAddress')} type="email" autoComplete="email" required value={email} onChange={(event) => setEmail(event.target.value)} />
-          <Input id="password" label={t('password')} type="password" autoComplete="current-password" required value={password} onChange={(event) => setPassword(event.target.value)} />
+          <Input id="email" label={t('emailAddress')} type="email" autoComplete="email" required placeholder="e.g. name@example.com" value={email} onFocus={warmCsrfToken} onChange={(event) => setEmail(event.target.value)} />
+          <Input id="password" label={t('password')} type="password" autoComplete="current-password" required placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} />
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
             <label htmlFor="remember-me" className="inline-flex cursor-pointer items-center gap-2 font-medium text-muted">
               <input

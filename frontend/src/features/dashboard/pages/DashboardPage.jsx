@@ -9,9 +9,6 @@ import { useLang } from '../../../contexts/LanguageContext.jsx';
 import { apiGet } from '../../../services/apiClient.js';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 
-const asList = (value) => (Array.isArray(value) ? value : value?.results || []);
-const requestUrl = (query) => `${API_ENDPOINTS.requests}?${new URLSearchParams(query)}`;
-
 export default function DashboardPage() {
   const { user } = useAuthCtx();
   const { t } = useLang();
@@ -25,22 +22,18 @@ export default function DashboardPage() {
     let alive = true;
     Promise.allSettled([
       apiGet(API_ENDPOINTS.profile),
-      apiGet(requestUrl({ mine: 'true', page_size: '5' })),
-      apiGet(requestUrl({ mine: 'true', status: 'ACTIVE', page_size: '1' })),
-      apiGet(requestUrl({ mine: 'true', status: 'FULFILLED', page_size: '1' })),
-    ]).then(([profileResult, requestResult, activeResult, fulfilledResult]) => {
+      apiGet(API_ENDPOINTS.myRequestSummary),
+    ]).then(([profileResult, summaryResult]) => {
       if (!alive) return;
-      setLoadError([profileResult, requestResult, activeResult, fulfilledResult].some((result) => result.status === 'rejected'));
+      setLoadError([profileResult, summaryResult].some((result) => result.status === 'rejected'));
       if (profileResult.status === 'fulfilled') setProfile(profileResult.value);
 
-      const ownRequests = requestResult.status === 'fulfilled' ? requestResult.value : null;
-      const activeRequests = activeResult.status === 'fulfilled' ? activeResult.value : null;
-      const fulfilledRequests = fulfilledResult.status === 'fulfilled' ? fulfilledResult.value : null;
-      setRequests(asList(ownRequests));
+      const summary = summaryResult.status === 'fulfilled' ? summaryResult.value : null;
+      setRequests(summary?.recent_requests || []);
       setStats({
-        total: ownRequests?.count ?? null,
-        active: activeRequests?.count ?? null,
-        fulfilled: fulfilledRequests?.count ?? null,
+        total: summary?.total ?? null,
+        active: summary?.active ?? null,
+        fulfilled: summary?.fulfilled ?? null,
       });
     }).finally(() => alive && setLoading(false));
 

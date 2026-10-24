@@ -8,6 +8,7 @@ import Select from '../../../components/ui/Select.jsx';
 import { useAuthCtx } from '../../../contexts/AuthContext.jsx';
 import { BLOOD_GROUPS } from '../../../utils/constants.js';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
+import { warmCsrfToken } from '../../../services/apiClient.js';
 
 export default function RegisterPage() {
   const { register, user } = useAuthCtx();
@@ -59,7 +60,6 @@ export default function RegisterPage() {
 
         <form onSubmit={submit} className="mt-7 space-y-5">
           {error && <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-800">{error}</p>}
-          <div className="relative">
           <Input
             id="name"
             name="name"
@@ -67,7 +67,9 @@ export default function RegisterPage() {
             autoComplete="name"
             required
             maxLength={150}
+            placeholder="e.g. Shoaib Sikder"
             value={form.name}
+            onFocus={warmCsrfToken}
             onChange={change}
           />
           <Input
@@ -77,6 +79,7 @@ export default function RegisterPage() {
             type="email"
             autoComplete="email"
             required
+            placeholder="e.g. name@example.com"
             value={form.email}
             onChange={change}
           />
@@ -88,7 +91,7 @@ export default function RegisterPage() {
             autoComplete="tel"
             required
             maxLength={30}
-            placeholder="e.g. +8801712345678"
+            placeholder="e.g. +880 1712-345678"
             value={form.phone}
             onChange={change}
           />
@@ -104,32 +107,36 @@ export default function RegisterPage() {
             <option value="" disabled>{t('selectBloodGroup')}</option>
             {BLOOD_GROUPS.map((group) => <option key={group} value={group}>{group}</option>)}
           </Select>
-          <Input
-            id="password"
-            name="password"
-            label={`${t('password')} *`}
-            type={showPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            required
-            minLength={8}
-            hint={t('passwordMinimum')}
-            value={form.password}
-            onChange={change}
-          />
-          <button type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={t(showPassword ? 'hidePassword' : 'showPassword')} aria-pressed={showPassword} className="absolute right-3 top-[2.35rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"><span className="sr-only">{t(showPassword ? 'hidePassword' : 'showPassword')}</span>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              label={`${t('password')} *`}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              required
+              minLength={8}
+              placeholder="At least 8 characters"
+              inputClassName="pr-12"
+              value={form.password}
+              onChange={change}
+            />
+            <button type="button" onClick={() => setShowPassword((shown) => !shown)} aria-label={t(showPassword ? 'hidePassword' : 'showPassword')} aria-pressed={showPassword} className="absolute right-2 top-[1.95rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"><span className="sr-only">{t(showPassword ? 'hidePassword' : 'showPassword')}</span>{showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
           </div>
           <div className="relative">
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            label={t('confirmPassword')}
-            type={showConfirmPassword ? 'text' : 'password'}
-            autoComplete="new-password"
-            required
-            value={form.confirmPassword}
-            onChange={change}
-          />
-          <button type="button" onClick={() => setShowConfirmPassword((shown) => !shown)} aria-label={t(showConfirmPassword ? 'hidePassword' : 'showPassword')} aria-pressed={showConfirmPassword} className="absolute right-3 top-[2.35rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"><span className="sr-only">{t(showConfirmPassword ? 'hidePassword' : 'showPassword')}</span>{showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              label={t('confirmPassword')}
+              type={showConfirmPassword ? 'text' : 'password'}
+              autoComplete="new-password"
+              required
+              placeholder="Re-enter your password"
+              inputClassName="pr-12"
+              value={form.confirmPassword}
+              onChange={change}
+            />
+            <button type="button" onClick={() => setShowConfirmPassword((shown) => !shown)} aria-label={t(showConfirmPassword ? 'hidePassword' : 'showPassword')} aria-pressed={showConfirmPassword} className="absolute right-2 top-[1.95rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"><span className="sr-only">{t(showConfirmPassword ? 'hidePassword' : 'showPassword')}</span>{showConfirmPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
           </div>
           <Button type="submit" variant="primary" loading={busy} className="w-full !rounded-full">
             {t('register')} <ArrowRight size={17} />

@@ -6,7 +6,7 @@ import { LanguageProvider } from '../contexts/LanguageContext.jsx';
 
 export default function Providers({ children }) {
   return (
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <LanguageProvider>
         <AuthProvider>{children}</AuthProvider>
       </LanguageProvider>
