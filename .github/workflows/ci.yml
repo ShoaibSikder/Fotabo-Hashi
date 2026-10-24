@@ -2,12 +2,19 @@ name: CI
 
 on:
   push:
-    branches: [main, develop]
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         working-directory: backend
@@ -18,7 +25,8 @@ jobs:
           POSTGRES_DB: fotabo_hashi_test
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports: ["5432:5432"]
+        ports:
+          - 5432:5432
         options: >-
           --health-cmd="pg_isready -U postgres -d fotabo_hashi_test"
           --health-interval=10s
@@ -26,7 +34,13 @@ jobs:
           --health-retries=5
       redis:
         image: redis:7-alpine
-        ports: ["6379:6379"]
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
     env:
       DJANGO_SETTINGS_MODULE: config.settings.testing
       DJANGO_SECRET_KEY: test-only-secret-key-that-is-at-least-32-bytes-long
@@ -37,55 +51,76 @@ jobs:
       SENTRY_DSN: ""
       STORAGE_BACKEND: local
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - name: Provision restricted application database role
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Provision restricted test database role
         env:
           PGPASSWORD: postgres
         run: |
           psql --host=127.0.0.1 --username=postgres --dbname=fotabo_hashi_test --command="CREATE ROLE fotabo_hashi_app LOGIN PASSWORD 'test-only-app-password' CREATEDB NOSUPERUSER NOBYPASSRLS;"
           psql --host=127.0.0.1 --username=postgres --dbname=fotabo_hashi_test --command="GRANT CONNECT ON DATABASE fotabo_hashi_test TO fotabo_hashi_app;"
           psql --host=127.0.0.1 --username=postgres --dbname=fotabo_hashi_test --command="GRANT USAGE, CREATE ON SCHEMA public TO fotabo_hashi_app;"
-      - name: Install dependencies
+
+      - name: Install backend dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt
+          python -m pip install -r requirements-dev.txt
+
       - name: Ruff
         run: ruff check .
+
       - name: Black
         run: black --check .
+
       - name: Audit Python dependencies
         run: pip-audit -r requirements.txt
+
       - name: Django checks
         run: python manage.py check
-      - name: Tests
+
+      - name: Backend tests
         run: pytest
-      - name: OpenAPI validation
-        run: |
-          python manage.py spectacular --file schema.yml
-          python manage.py spectacular --validate
+
+      - name: Validate OpenAPI schema
+        run: python manage.py spectacular --file "${RUNNER_TEMP}/openapi.yml" --validate --fail-on-warn
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: frontend
     env:
       VITE_API_BASE_URL: https://api.example.invalid/api/v1
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v4
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
-        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci --no-audit --no-fund
+
       - name: Audit npm dependencies
         run: npm audit --audit-level=moderate
-      - name: Lint
+
+      - name: Lint frontend
         run: npm run lint
-      - name: Production build
+
+      - name: Build frontend
         run: npm run build
