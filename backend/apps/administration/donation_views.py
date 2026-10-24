@@ -55,7 +55,10 @@ class AdminUserDonationListCreateView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         donor = self.get_donor()
         try:
-            with transaction.atomic(), temporary_admin_context():
+            # Roll back a failed insert before the RLS context manager restores
+            # connection-local settings; PostgreSQL rejects queries in a broken
+            # transaction, including the context cleanup queries.
+            with temporary_admin_context(), transaction.atomic():
                 record = serializer.save(donor=donor, recorded_by=self.request.user)
                 donor_profile = Profile.objects.select_for_update().get(user=donor)
                 donor_profile.approved_donation_count += 1

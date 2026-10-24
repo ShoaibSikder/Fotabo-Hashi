@@ -20,6 +20,10 @@ def test_leaderboard_ranks_members_by_admin_recorded_donations():
         DonationRecord.objects.create(donor=user)
         DonationRecord.objects.create(donor=user, donated_on="2026-09-20")
         DonationRecord.objects.create(donor=second, donated_on="2026-09-21")
+        user.profile.approved_donation_count = 2
+        user.profile.save(update_fields=["approved_donation_count", "updated_at"])
+        second.profile.approved_donation_count = 1
+        second.profile.save(update_fields=["approved_donation_count", "updated_at"])
     client = APIClient()
     client.force_authenticate(user=user)
     response = client.get("/api/v1/leaderboard/")

@@ -32,7 +32,8 @@ def test_admin_overview_query_count_does_not_grow_with_record_count():
 
     expanded, response = query_count_for(client, "/api/v1/admin/overview/")
 
-    assert expanded == baseline
+    # A warm overview cache may reduce the second request to zero SQL queries.
+    assert expanded <= baseline
     assert response.data["users"] == 11
     assert response.data["blood_requests"] == 10
 
@@ -57,4 +58,4 @@ def test_admin_user_list_avoids_profile_and_review_n_plus_one_queries():
     expanded, response = query_count_for(client, "/api/v1/admin/users/")
 
     assert expanded == baseline
-    assert response.data["count"] == 11
+    assert response.data["data"]["count"] == 11

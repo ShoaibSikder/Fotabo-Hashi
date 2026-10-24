@@ -14,10 +14,12 @@ class TestAuthenticationCookies:
         )
 
     def login(self, client):
+        csrf_token = self.csrf_token(client)
         return client.post(
             "/api/v1/auth/login/",
             {"email": self.user.email, "password": "StrongPassword123!"},
             format="json",
+            HTTP_X_CSRFTOKEN=csrf_token,
         )
 
     def csrf_token(self, client):

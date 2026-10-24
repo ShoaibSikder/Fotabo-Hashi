@@ -48,7 +48,7 @@ def test_admin_can_record_and_remove_verified_donation():
         {"donated_on": "2026-10-20"},
         format="json",
     )
-    assert duplicate.status_code == 400
+    assert duplicate.status_code == 400, duplicate.data
 
     removed = client.delete(f"{endpoint}{record_id}/")
     assert removed.status_code == 204

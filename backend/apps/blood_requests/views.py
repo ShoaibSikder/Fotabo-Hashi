@@ -71,12 +71,15 @@ class MyBloodRequestSummaryView(APIView):
         ]
         return Response(
             {
-                **counts,
-                "recent_requests": BloodRequestSerializer(
-                    recent_requests,
-                    many=True,
-                    context={"request": request},
-                ).data,
+                "success": True,
+                "data": {
+                    **counts,
+                    "recent_requests": BloodRequestSerializer(
+                        recent_requests,
+                        many=True,
+                        context={"request": request},
+                    ).data,
+                },
             }
         )
 

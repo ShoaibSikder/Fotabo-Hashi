@@ -36,4 +36,4 @@ class AuditLogAdminListView(generics.ListAPIView):
 
         queryset = self.filter_queryset(self.get_queryset())[:limit]
         serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        return Response({"success": True, "data": serializer.data})
