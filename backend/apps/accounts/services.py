@@ -21,6 +21,7 @@ from apps.audit.services import create_audit_log
 from apps.notifications.models import NotificationEvent
 from apps.notifications.services import create_notification, notify_administrators
 from apps.profiles.models import Profile
+from infrastructure.cache.invalidation import invalidate_admin_overview
 from infrastructure.database.rls.context import temporary_admin_context
 
 logger = logging.getLogger(__name__)
@@ -40,6 +41,7 @@ def register_user(*, email, password, name, phone, blood_group, request):
             phone=phone,
             blood_group=blood_group,
         )
+    invalidate_admin_overview()
 
     create_audit_log(
         actor=user,

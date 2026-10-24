@@ -1,8 +1,10 @@
 import pytest
+from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.accounts.models import User, UserRole
 from apps.blood_requests.models import BloodRequest
+from infrastructure.cache.invalidation import invalidate_admin_overview
 from tests.performance.helpers import query_count_for
 
 
@@ -29,6 +31,11 @@ def test_admin_overview_query_count_does_not_grow_with_record_count():
             required_units=1,
             location=f"Dhaka {number}",
         )
+
+    # These fixtures use direct ORM writes, so they bypass application service
+    # hooks that invalidate the overview cache after successful transactions.
+    with TestCase.captureOnCommitCallbacks(execute=True):
+        invalidate_admin_overview()
 
     expanded, response = query_count_for(client, "/api/v1/admin/overview/")
 

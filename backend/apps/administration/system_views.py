@@ -20,7 +20,9 @@ from apps.leaderboard.review_models import DonationCountReview
 from apps.notifications.models import NotificationEvent
 from apps.notifications.services import create_notification, notify_administrators
 from apps.profiles.models import Profile
-from infrastructure.cache.services import delete_cached, get_cached, set_cached
+from infrastructure.cache.invalidation import invalidate_admin_overview
+from infrastructure.cache.keys import ADMIN_OVERVIEW_KEY
+from infrastructure.cache.services import get_cached, set_cached
 
 from .permissions import IsAdminRole
 from .system_serializers import (
@@ -42,16 +44,13 @@ def _audit(request, *, action, resource_type, resource_id, description):
     )
 
 
-ADMIN_OVERVIEW_CACHE_KEY = "administration:overview:v1"
-
-
 @extend_schema(tags=["Administration"])
 class AdminOverviewView(APIView):
     permission_classes = [IsAdminRole]
 
     @extend_schema(responses=OpenApiTypes.OBJECT, tags=["Administration"])
     def get(self, request):
-        cached_overview = get_cached(ADMIN_OVERVIEW_CACHE_KEY)
+        cached_overview = get_cached(ADMIN_OVERVIEW_KEY)
         if cached_overview is not None:
             return Response(cached_overview)
 
@@ -100,7 +99,7 @@ class AdminOverviewView(APIView):
             overview = dict(zip(columns, cursor.fetchone(), strict=True))
         # Dashboard aggregates need not be exact to the second. A short shared
         # cache avoids rescanning growing tables on every admin page visit.
-        set_cached(ADMIN_OVERVIEW_CACHE_KEY, overview, timeout=60)
+        set_cached(ADMIN_OVERVIEW_KEY, overview, timeout=60)
         return Response(overview)
 
 
@@ -192,6 +191,7 @@ class AdminUserListView(generics.ListCreateAPIView):
     @transaction.atomic
     def perform_create(self, serializer):
         user = serializer.save()
+        invalidate_admin_overview()
         _audit(
             self.request,
             action=AuditAction.CREATE,
@@ -268,6 +268,8 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
 
         serializer.instance = target
         updated = serializer.save()
+        if changed_fields & {"is_active", "is_available_for_donation"}:
+            invalidate_admin_overview()
         if changed_fields & {"email", "role", "is_active"}:
             _audit(
                 self.request,
@@ -335,7 +337,7 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
             description=f"Administrator deleted account {deleted_user_id}.",
         )
         target.delete()
-        delete_cached(ADMIN_OVERVIEW_CACHE_KEY)
+        invalidate_admin_overview()
 
 
 class AdminBloodRequestListCreateView(generics.ListCreateAPIView):
@@ -368,6 +370,7 @@ class AdminBloodRequestListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         request = serializer.save()
+        invalidate_admin_overview()
         _audit(
             self.request,
             action=AuditAction.CREATE,
@@ -390,6 +393,8 @@ class AdminBloodRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         old_status = serializer.instance.status
         request = serializer.save()
+        if request.status != old_status:
+            invalidate_admin_overview()
         _audit(
             self.request,
             action=AuditAction.UPDATE,
@@ -408,6 +413,7 @@ class AdminBloodRequestDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_destroy(self, instance):
         request_id = instance.pk
         instance.delete()
+        invalidate_admin_overview()
         _audit(
             self.request,
             action=AuditAction.DELETE,

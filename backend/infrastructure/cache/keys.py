@@ -1,3 +1,4 @@
 ORGANIZATION_CONTENT_KEY = "content:organization"
 PUBLIC_NOTICES_KEY = "content:notices"
 FOUNDING_MEMBERS_KEY = "content:founding-members"
+ADMIN_OVERVIEW_KEY = "administration:overview:v1"

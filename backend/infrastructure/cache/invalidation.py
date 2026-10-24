@@ -1,4 +1,7 @@
+from django.db import transaction
+
 from .keys import (
+    ADMIN_OVERVIEW_KEY,
     FOUNDING_MEMBERS_KEY,
     ORGANIZATION_CONTENT_KEY,
     PUBLIC_NOTICES_KEY,
@@ -16,3 +19,7 @@ def invalidate_public_notices() -> None:
 
 def invalidate_founding_members() -> None:
     delete_cached(FOUNDING_MEMBERS_KEY)
+
+
+def invalidate_admin_overview() -> None:
+    transaction.on_commit(lambda: delete_cached(ADMIN_OVERVIEW_KEY))
