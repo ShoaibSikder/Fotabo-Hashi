@@ -1,26 +1,34 @@
-# Fotabo Hashi
+<p align="center">
+  <img src="frontend/public/images/Fotabo_Hashi_Logo.svg" alt="Fotabo Hashi logo" width="112" />
+</p>
 
-![License](https://img.shields.io/badge/License-MIT-blue)
-![Frontend](https://img.shields.io/badge/Frontend-React%20%2B%20Vite-61DAFB)
-![Backend](https://img.shields.io/badge/Backend-Django-0C4B33)
-![API](https://img.shields.io/badge/API-Django%20REST%20Framework-red)
-![Database](https://img.shields.io/badge/Database-PostgreSQL-336791)
-![Deployment](https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-black)
+<h1 align="center">Fotabo Hashi</h1>
 
-Fotabo Hashi is a bilingual blood donation and community support platform. It helps people find nearby blood donors, publish and manage blood requests, and recognize verified donations. The system has separate user and administrator workspaces.
+<p align="center"><strong>Together we save lives.</strong><br />A bilingual blood donation and community support platform.</p>
 
-The frontend is a React single-page application. The backend is a Django REST API using PostgreSQL, JWT authentication in secure cookies, Redis for caching and request throttling, Supabase Storage for member photos, and Resend for account email delivery.
+<p align="center">
+  <a href="https://github.com/ShoaibSikder/Fotabo-Hashi/actions/workflows/ci.yml"><img src="https://github.com/ShoaibSikder/Fotabo-Hashi/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white" alt="React 18" />
+  <img src="https://img.shields.io/badge/Django-5.2-0C4B33?logo=django&logoColor=white" alt="Django 5.2" />
+  <img src="https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Deploy-Vercel%20%2B%20Render-black" alt="Vercel and Render" />
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="MIT License" /></a>
+</p>
+
+Fotabo Hashi connects people who need blood with registered donors. Members can search donors, manage blood requests, and follow verified donation activity. Administrators use a separate workspace to manage accounts, requests, notices, active members, and platform activity.
+
+The project is a React single-page application backed by a Django REST API. PostgreSQL stores application data, Redis supports production caching and throttling, Supabase Storage stores active-member photos, and Resend delivers account emails.
 
 ## Contents
 
 - [Screenshots](#screenshots)
 - [Features](#features)
-- [Roles and access](#roles-and-access)
+- [Roles and routes](#roles-and-routes)
 - [Technology](#technology)
 - [Architecture](#architecture)
-- [Project layout](#project-layout)
+- [Repository structure](#repository-structure)
 - [API overview](#api-overview)
-- [Environment configuration](#environment-configuration)
+- [Configuration notes](#configuration-notes)
 - [Local development](#local-development)
 - [Checks](#checks)
 - [Deployment](#deployment)
@@ -28,194 +36,192 @@ The frontend is a React single-page application. The backend is a Django REST AP
 
 ## Screenshots
 
-Screenshots are in [`frontend/public/system images`](frontend/public/system%20images).
+Screenshots are stored in [`frontend/public/system images`](frontend/public/system%20images).
 
-| Public site | User dashboard |
-| --- | --- |
-| ![Public site](frontend/public/system%20images/public%20page.png) | ![User dashboard](frontend/public/system%20images/user%20dashboard.png) |
+### Public site and authentication
 
-| Donor search | Blood requests |
-| --- | --- |
-| ![Donor search](frontend/public/system%20images/find%20donor.png) | ![Blood requests](frontend/public/system%20images/blood%20requests.png) |
+<p align="center">
+  <img src="frontend/public/system%20images/public%20page.png" alt="Fotabo Hashi public page" width="700" />
+</p>
 
-| Administrator dashboard | Registration |
-| --- | --- |
-| ![Administrator dashboard](frontend/public/system%20images/admin%20dashboard.png) | ![Registration](frontend/public/system%20images/registration.png) |
+<p align="center">
+  <img src="frontend/public/system%20images/login.png" alt="Login page" width="340" />
+  <img src="frontend/public/system%20images/registration.png" alt="Registration page" width="340" />
+</p>
+
+### Member and administrator workspaces
+
+<p align="center">
+  <img src="frontend/public/system%20images/user%20dashboard.png" alt="Member dashboard" width="340" />
+  <img src="frontend/public/system%20images/admin%20dashboard.png" alt="Administrator dashboard" width="340" />
+</p>
+
+<p align="center">
+  <img src="frontend/public/system%20images/find%20donor.png" alt="Donor search" width="340" />
+  <img src="frontend/public/system%20images/blood%20requests.png" alt="Blood requests" width="340" />
+</p>
 
 ## Features
 
 ### Public site
 
-- Organization information, notices, and active members.
-- Responsive public pages in English and Bangla.
-- Donor, blood-request, registration, and login entry points.
-- Locally hosted hero video in `frontend/public/videos`.
+- Responsive pages in English and Bangla.
+- Organization information, notices, and active-member listings.
+- Hero media served from frontend static assets.
+- Direct entry points to donor search, blood requests, registration, and login.
 
-### User workspace
+### Member workspace
 
-- Email and password registration and login.
-- Secure access and refresh cookie authentication, logout, and password reset.
-- User dashboard, profile and donation availability settings.
-- Donor search by blood group and location.
-- Create, view, fulfill, and cancel blood requests according to request ownership and status rules.
-- Leaderboard based on administrator-verified donation records.
+- Email and password registration, login, logout, and password reset.
+- Secure HttpOnly access and refresh cookies with CSRF protection.
+- Profile and donation-availability settings.
+- Donor search by blood group, location, and search term.
+- Create and manage blood requests, with ownership and status-transition rules.
+- Leaderboard based on administrator-approved donation counts.
 - In-app notifications and account settings.
 
 ### Administrator workspace
 
-- Separate administrator dashboard and protected routes.
-- Search and filter people by name, email, phone, and blood group; review and update accounts.
-- Delete accounts with protections against self-deletion and deleting the last active administrator.
-- Record verified donations and review user-submitted donation-count changes.
-- Manage blood requests, public notices, and active members.
-- Review audit activity and account notifications.
+- Separate role-protected dashboard and navigation.
+- Search and filter accounts by name, email, phone, and blood group.
+- Create, review, update, and delete accounts, with safeguards for the current and last active administrator.
+- Record verified donations and review member-submitted donation-count changes.
+- Manage blood requests, notices, and active-member records.
+- Review audit activity and administrator notifications.
 
-### Reliability and security
+### Platform protections
 
-- Django REST Framework API versioned under `/api/v1/`.
-- Role checks enforced by the backend as well as the frontend routes.
-- API pagination, throttling, structured errors, readiness checks, and request IDs.
-- Redis-backed caching and rate limits in production; local development can use Django's in-memory cache.
-- Supabase Storage integration for active-member photos. User profile photo uploads are not part of the registration/profile flow.
-- CI checks Python formatting and linting, runs backend tests, validates the API schema, audits dependencies, and builds the frontend.
+- Backend authorization is enforced by Django permissions; frontend route guards are an additional UI boundary.
+- API pagination, throttling, request IDs, standardized errors, and liveness/readiness endpoints.
+- PostgreSQL row-level security policies for protected records.
+- Redis-backed production caching and rate limiting, with an in-memory local-development cache option.
+- Automated Python and npm dependency audits, backend tests, frontend lint/build checks, and OpenAPI validation.
 
-## Roles and access
+## Roles and routes
 
-The application roles are `USER` and `ADMIN`.
+The application has two roles: `USER` and `ADMIN`. Public pages do not require an account.
 
-| Role | Workspace |
+| Access | Main routes |
 | --- | --- |
-| Public visitor | Public pages, notices, member listing, login, and registration |
-| `USER` | `/dashboard`, `/donors`, `/requests`, `/leaderboard`, `/profile`, and `/settings` |
-| `ADMIN` | `/admin/dashboard`, `/admin/users`, `/admin/donation-reviews`, `/admin/requests`, `/admin/public-content`, and `/admin/audit` |
+| Public visitor | `/`, `/login`, `/register`, `/forgot-password`, `/reset-password` |
+| `USER` | `/dashboard`, `/donors`, `/requests`, `/leaderboard`, `/profile`, `/settings` |
+| `ADMIN` | `/admin/dashboard`, `/admin/users`, `/admin/donation-reviews`, `/admin/requests`, `/admin/public-content`, `/admin/audit` |
 
-The API independently checks permissions. Hiding a route in the frontend is not the backend security boundary.
+The API checks permissions independently. A hidden or inaccessible frontend route does not replace backend authorization.
 
 ## Technology
 
-| Area | Stack |
+| Layer | Technologies |
 | --- | --- |
-| Frontend | React 18, Vite 6, React Router 7, Tailwind CSS 3, Lucide |
+| Frontend | React 18, Vite 6, React Router 7, Tailwind CSS 3, Lucide React |
 | Backend | Python 3.13, Django 5.2, Django REST Framework |
-| Authentication | Simple JWT, secure HttpOnly cookies, CSRF protection |
-| Database | PostgreSQL (Supabase PostgreSQL in the hosted setup) |
-| Cache and throttling | Redis, django-redis |
+| Authentication | Simple JWT, HttpOnly cookies, CSRF protection |
+| Database | PostgreSQL; Supabase PostgreSQL for the hosted setup |
+| Cache and rate limits | Redis, django-redis |
 | Media | Supabase Storage |
 | Email | Resend |
 | Hosting | Vercel frontend, Render API |
-| Quality checks | pytest, Ruff, Black, pip-audit, ESLint, npm audit |
+| Quality | pytest, Ruff, Black, pip-audit, ESLint, npm audit |
 
 ## Architecture
 
-```text
-Browser
-  └── React + Vite on Vercel
-        └── HTTPS /api/v1/ requests with secure cookies
-              └── Django REST API on Render
-                    ├── PostgreSQL
-                    ├── Redis
-                    ├── Supabase Storage
-                    └── Resend email API
+```mermaid
+flowchart LR
+    Browser[Browser]
+    Web[React and Vite on Vercel]
+    API[Django REST API on Render]
+    DB[(Supabase PostgreSQL)]
+    Cache[(Render Redis)]
+    Media[Supabase Storage]
+    Mail[Resend]
+
+    Browser --> Web
+    Web -->|HTTPS and secure cookies| API
+    API --> DB
+    API --> Cache
+    API --> Media
+    API --> Mail
 ```
 
-The frontend reads its API root from `VITE_API_BASE_URL`. Django settings are split into `base.py`, `development.py`, `testing.py`, and `production.py`. Render runs database migrations before starting a deployment.
+The API is versioned under `/api/v1/`. Django settings are split into `base.py`, `development.py`, `testing.py`, and `production.py`. The Render blueprint runs database migrations before a deployment starts.
 
-## Project layout
+## Repository structure
 
 ```text
 Fotabo-Hashi/
-├── .github/
-│   ├── dependabot.yml
-│   └── workflows/ci.yml
-├── backend/
-│   ├── api/v1/                 # API version routing and health endpoints
-│   ├── apps/
-│   │   ├── accounts/           # Custom User model and authentication
-│   │   ├── administration/     # Admin API and review actions
-│   │   ├── audit/              # Administrative audit records
-│   │   ├── blood_requests/
-│   │   ├── common/              # Shared API infrastructure
-│   │   ├── content/             # Organization details, notices, members
-│   │   ├── donors/
-│   │   ├── leaderboard/
-│   │   ├── notifications/
-│   │   └── profiles/
-│   ├── config/settings/        # Environment-specific Django settings
-│   ├── infrastructure/         # Cache, database, storage, monitoring, logging
-│   ├── tests/                   # Backend unit, API, and security tests
-│   ├── manage.py
-│   ├── requirements.txt         # Runtime packages
-│   └── requirements-dev.txt    # Runtime and development/test packages
-├── frontend/
-│   ├── public/                  # Static assets and hero video
-│   └── src/
-│       ├── app/                 # App providers and route map
-│       ├── components/          # Shared UI and layouts
-│       ├── contexts/            # Authentication and language state
-│       ├── features/            # User, admin, auth, and public pages
-│       ├── i18n/                # English and Bangla translations
-│       └── services/            # API client and endpoint configuration
-├── render.yaml
-└── README.md
+|-- .github/
+|   |-- dependabot.yml
+|   `-- workflows/ci.yml
+|-- backend/
+|   |-- api/v1/                 API routes and health endpoints
+|   |-- apps/
+|   |   |-- accounts/           Email-based user identity and authentication
+|   |   |-- administration/     Admin APIs and management actions
+|   |   |-- audit/              Security and admin activity records
+|   |   |-- blood_requests/     Request lifecycle and ownership rules
+|   |   |-- common/             Shared responses, pagination, and errors
+|   |   |-- content/            Organization details, notices, and members
+|   |   |-- donors/             Donor search
+|   |   |-- leaderboard/        Verified donation counts and reviews
+|   |   |-- notifications/      In-app notifications
+|   |   `-- profiles/           Member profile data
+|   |-- config/settings/        Environment-specific settings
+|   |-- infrastructure/         Database, RLS, cache, storage, and monitoring
+|   |-- tests/                  API, integration, performance, and security tests
+|   |-- manage.py
+|   |-- requirements.txt
+|   `-- requirements-dev.txt
+|-- frontend/
+|   |-- public/                 Logo, screenshots, and static hero video
+|   `-- src/
+|       |-- app/                Providers and route configuration
+|       |-- components/         Shared UI and layouts
+|       |-- contexts/           Authentication and language state
+|       |-- features/           Public, auth, member, and admin pages
+|       |-- i18n/               English and Bangla translations
+|       `-- services/           API client and endpoint helpers
+|-- render.yaml
+|-- LICENSE
+`-- README.md
 ```
-
-### Backend apps
-
-| App | Responsibility |
-| --- | --- |
-| `accounts` | Custom email-based user model, registration, login, logout, and password reset |
-| `profiles` | User names, phone, blood group, location, and donation availability |
-| `donors` | Publicly safe donor search and filtering |
-| `blood_requests` | Request creation, ownership, status transitions, and summaries |
-| `leaderboard` | Verified donation records and user-submitted count review |
-| `content` | Organization information, active members, and notices |
-| `notifications` | User and administrator notifications and read state |
-| `administration` | Admin overview, account control, donation review, public content, and audit views |
-| `audit` | Records administrative and security-sensitive actions |
-| `common` | Shared pagination, responses, error handling, and throttling |
-
-### Frontend architecture
-
-- `src/app` composes providers and lazy-loaded routes.
-- `src/features` keeps public, authentication, user, and admin pages grouped by feature.
-- `src/components/layout` contains the public, user, and admin application shells.
-- `src/services` centralizes the API root, endpoint paths, and cookie/CSRF-aware API client.
-- `src/contexts` provides authentication and language state.
-- `src/i18n/locales` contains English and Bangla messages.
 
 ## API overview
 
-Base path: `/api/v1/`
+Base URL: `https://<api-host>/api/v1/` (locally: `http://127.0.0.1:8000/api/v1/`).
 
-| Endpoint | Purpose |
+| Endpoint | Description |
 | --- | --- |
-| `/health/`, `/health/live/`, `/health/ready/` | API, liveness, and dependency health |
-| `/auth/register/`, `/auth/login/`, `/auth/refresh/`, `/auth/logout/` | Authentication |
-| `/auth/password-reset/`, `/auth/password-reset/confirm/` | Password reset |
-| `/profile/me/` | Current user profile |
-| `/donors/` | Donor search |
-| `/blood-requests/` | Blood request listing and creation |
-| `/blood-requests/mine/summary/` | Current user's request summary |
+| `/health/`, `/health/live/`, `/health/ready/` | Basic, liveness, and dependency checks |
+| `/auth/register/`, `/auth/login/`, `/auth/refresh/`, `/auth/logout/` | Account access and session endpoints |
+| `/auth/password-reset/`, `/auth/password-reset/confirm/` | Password reset flow |
+| `/profile/me/` | Current member profile |
+| `/donors/` | Donor search and filtering |
+| `/blood-requests/` | Request listing, creation, and status actions |
+| `/blood-requests/mine/summary/` | Current member's request summary |
 | `/leaderboard/` | Verified donation leaderboard |
 | `/content/organization/`, `/content/notices/`, `/content/active-members/` | Public content |
-| `/notifications/` | Current user's notifications and read actions |
-| `/admin/` | Protected overview, user, donation, request, content, and audit APIs |
-| `/schema/`, `/docs/`, `/redoc/` | OpenAPI schema and API documentation |
+| `/notifications/` | Member notifications and read state |
+| `/admin/` | Protected account, donation, request, content, overview, and audit APIs |
+| `/schema/`, `/docs/`, `/redoc/` | OpenAPI schema and interactive documentation |
 
-## Environment configuration
+## Configuration notes
 
-Copy the examples for local development and fill in local service values:
-
-- Backend: [`backend/.env.example`](backend/.env.example)
-- Frontend: [`frontend/.env.example`](frontend/.env.example)
-
-The backend needs a PostgreSQL `DATABASE_URL`. Set `DJANGO_SETTINGS_MODULE=config.settings.development` for local work. Local development defaults to Django's in-memory cache; set `DJANGO_USE_REDIS_CACHE=True` only when a local Redis service is running.
-
-For deployment, set environment variables in Render and Vercel, not in a committed file. Render requires the database URL, allowed host(s), frontend CORS and CSRF origins, HTTPS frontend base URL, Supabase URL and service-role key, and Resend key and verified sender. `REDIS_URL` is wired to the private Render Key Value service by `render.yaml`. Vercel requires `VITE_API_BASE_URL` pointing to the deployed API's `/api/v1` path.
-
-Never expose `DJANGO_SECRET_KEY`, database credentials, `SUPABASE_SERVICE_ROLE_KEY`, or `RESEND_API_KEY` through `VITE_*` variables. Vite variables are public in the browser bundle.
+- Backend local configuration template: [`backend/.env.example`](backend/.env.example).
+- Frontend local configuration template: [`frontend/.env.example`](frontend/.env.example).
+- Development requires a PostgreSQL `DATABASE_URL`; this project is configured for Supabase PostgreSQL rather than a local SQLite fallback.
+- Redis is optional during local development. Enable it with `DJANGO_USE_REDIS_CACHE=True` only when a Redis server is running.
+- Production uses Supabase Storage for active-member photos. Member profile image uploads are not supported; avatars are generated by the UI.
+- The hero video is a static frontend asset, not a database-managed upload.
+- Production-only credentials and configuration belong in Render/Vercel environment settings, never in committed files.
+- Keep `DJANGO_SECRET_KEY`, database credentials, `SUPABASE_SERVICE_ROLE_KEY`, and `RESEND_API_KEY` server-side. Vite `VITE_*` variables are public in the built site.
 
 ## Local development
+
+### Requirements
+
+- Python 3.13
+- Node.js 20 or later (CI uses Node.js 22)
+- A PostgreSQL database and connection URL
 
 ### Backend (Windows PowerShell)
 
@@ -227,7 +233,7 @@ python -m pip install -r requirements-dev.txt
 Copy-Item .env.example .env
 ```
 
-Edit `backend/.env` and set `DATABASE_URL` to your PostgreSQL connection string. Local development does not require Redis unless `DJANGO_USE_REDIS_CACHE=True`. Then run:
+Edit `backend/.env` and set `DATABASE_URL` to your PostgreSQL connection string. Then start Django:
 
 ```powershell
 python manage.py check
@@ -236,11 +242,11 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-The API will be available at `http://127.0.0.1:8000/`.
+The API is available at `http://127.0.0.1:8000/`.
 
 ### Frontend
 
-In another terminal:
+In a second terminal:
 
 ```powershell
 cd frontend
@@ -249,60 +255,55 @@ Copy-Item .env.example .env
 npm run dev
 ```
 
-The Vite development server runs at `http://127.0.0.1:5173/`. The example API URL targets the local Django server. Ensure the backend CORS and CSRF origin lists include the actual Vite origin if its port differs.
+The Vite development site is available at `http://127.0.0.1:5173/`. Set `VITE_API_BASE_URL` to the local API root. If Vite uses another port, add that origin to the backend's `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`.
 
 ## Checks
 
-Backend checks and tests:
+Run backend checks from `backend/`:
 
 ```powershell
-cd backend
 ruff check .
 black --check .
 python manage.py check
 pytest
-python manage.py spectacular --validate
+python manage.py spectacular --validate --fail-on-warn
 pip-audit -r requirements.txt
 ```
 
-Frontend checks:
+Run frontend checks from `frontend/`:
 
 ```powershell
-cd frontend
 npm ci
-npm run lint
 npm audit --audit-level=moderate
+npm run lint
 npm run build
 ```
 
-CI runs these checks with PostgreSQL and Redis services. Run them before deploying changes.
+GitHub Actions runs the backend checks with PostgreSQL and Redis services and runs the frontend audit, lint, and production build. The branch-protection checks are `test` and `frontend`.
 
 ## Deployment
 
 ### Render API
 
-1. Push the repository to GitHub and create a Render Blueprint from [`render.yaml`](render.yaml).
-2. Provide the requested Supabase, Resend, domain, and database values in Render's environment settings. Do not put production secrets in Git.
-3. Use HTTPS origins in `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`. Include the frontend origin in both; put the backend host in `DJANGO_ALLOWED_HOSTS`.
-4. Set `FRONTEND_BASE_URL` to the deployed frontend origin. The verified Resend sender must be authorized for your Resend account.
-5. Render builds static assets, applies database migrations in the pre-deploy step, and starts Gunicorn. The blueprint requires a paid web service for pre-deploy migrations and provisions a private Redis service.
+1. Create a Render Blueprint from [`render.yaml`](render.yaml).
+2. Set the required production environment variables in Render. The backend requires a PostgreSQL `DATABASE_URL`, domain and CORS/CSRF configuration, Supabase Storage credentials, and a Resend API key and sender.
+3. Point `FRONTEND_BASE_URL` to the deployed frontend. Add the frontend HTTPS origin to both `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`; set `DJANGO_ALLOWED_HOSTS` to the API hostname.
+4. Render builds the backend, runs migrations in the pre-deploy step, and starts Gunicorn. The blueprint provides a private Redis service.
 
 ### Vercel frontend
 
-1. Import the same repository into Vercel and set the project root directory to `frontend`.
-2. Set `VITE_API_BASE_URL` to `https://<your-api-domain>/api/v1` for the production environment.
-3. Deploy after the Render API is available, then check the public page, authentication, password reset, donor search, requests, and admin access.
+1. Import the repository and set the Vercel project root to `frontend`.
+2. Set `VITE_API_BASE_URL` to `https://<api-host>/api/v1`.
+3. Deploy and verify the public pages, login/logout, password reset, donor search, blood requests, and administrator access.
 
-Use frontend and API custom domains under the same parent domain where possible (for example, `app.example.com` and `api.example.com`). This helps browsers treat the secure cross-origin authentication cookies as same-site. Match the Render region with the Supabase database region to limit database round-trip latency.
-
-After deployment, check `https://<your-api-domain>/api/v1/health/ready/`. Create the initial administrator using Render's Shell:
+Use HTTPS custom domains for both services. Frontend and API subdomains under the same parent domain work well with secure cross-origin cookies. Keep the database and Render service in nearby regions to reduce round-trip latency. After deployment, check `https://<api-host>/api/v1/health/ready/` and create the initial administrator from the Render Shell:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-Back up the production database and verify that a restore works before relying on it for live data. Enable HSTS subdomain and preload options only after confirming every affected subdomain is HTTPS-only.
+The production settings require `STORAGE_BACKEND=supabase`, valid Supabase credentials, and a verified Resend sender. HSTS subdomain and preload options should only be enabled after all affected subdomains are HTTPS-only.
 
 ## License
 
-This project is licensed under the MIT License. See [`LICENSE`](LICENSE).
+Fotabo Hashi is licensed under the [MIT License](LICENSE).
