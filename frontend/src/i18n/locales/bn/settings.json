@@ -1,0 +1,16 @@
+
+{
+  "languageSettings": "ভাষা",
+  "passwordSettings": "পাসওয়ার্ড পরিবর্তন",
+  "currentPassword": "বর্তমান পাসওয়ার্ড",
+  "newPassword": "নতুন পাসওয়ার্ড",
+  "updatePassword": "পাসওয়ার্ড হালনাগাদ",
+  "notifications": "বিজ্ঞপ্তি",
+  "nearbyRequests": "কাছাকাছি নতুন রক্তের অনুরোধ",
+  "requestUpdates": "আমার অনুরোধের হালনাগাদ",
+  "privacy": "গোপনীয়তা",
+  "showPhone": "সাইন ইন করা সদস্যদের ফোন দেখান",
+  "appearInSearch": "রক্তদাতা অনুসন্ধানে দেখান",
+  "savePreferences": "পছন্দ সংরক্ষণ",
+  "settingsSaved": "আপনার পছন্দ এই ডিভাইসে সংরক্ষিত হয়েছে।"
+}

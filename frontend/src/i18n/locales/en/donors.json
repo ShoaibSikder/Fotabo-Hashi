@@ -1,0 +1,14 @@
+
+{
+  "donors": "Find a donor",
+  "donorIntro": "Search our community by blood group and area.",
+  "searchDonorsPlaceholder": "Name, blood group, or area",
+  "allGroups": "All blood groups",
+  "available": "Available",
+  "donor": "Donor",
+  "area": "Area",
+  "donations": "Donations",
+  "contact": "Contact donor",
+  "noDonors": "No donors match these filters.",
+  "searching": "Looking for donors"
+}

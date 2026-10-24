@@ -1,0 +1,16 @@
+
+{
+  "dashboard": "Dashboard",
+  "overview": "Your contribution, at a glance",
+  "donorCard": "Your donor card",
+  "totalDonations": "Donations made",
+  "openRequests": "Open requests",
+  "rank": "Community rank",
+  "recentRequests": "Recent requests",
+  "quickActions": "Quick actions",
+  "searchDonors": "Find a donor",
+  "createRequest": "Create a request",
+  "updateProfile": "Update your profile",
+  "yourJourney": "Your journey matters",
+  "completeProfile": "Complete your donor profile to help people find you when they need you."
+}

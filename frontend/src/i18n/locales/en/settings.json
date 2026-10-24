@@ -1,0 +1,16 @@
+
+{
+  "languageSettings": "Language",
+  "passwordSettings": "Change password",
+  "currentPassword": "Current password",
+  "newPassword": "New password",
+  "updatePassword": "Update password",
+  "notifications": "Notifications",
+  "nearbyRequests": "New blood requests near me",
+  "requestUpdates": "Updates to my requests",
+  "privacy": "Privacy",
+  "showPhone": "Show my phone to signed in members",
+  "appearInSearch": "Appear in donor search",
+  "savePreferences": "Save preferences",
+  "settingsSaved": "Your preferences are saved on this device."
+}
