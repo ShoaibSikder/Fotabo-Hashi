@@ -307,3 +307,7 @@ The production settings require `STORAGE_BACKEND=supabase`, valid Supabase crede
 ## License
 
 Fotabo Hashi is licensed under the [MIT License](LICENSE).
+
+---
+
+Built by [@shoaibsikder](https://shoaibsikderportfolio.vercel.app) to help connect blood donors with the people and communities who need them.
