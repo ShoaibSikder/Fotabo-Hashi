@@ -3,7 +3,7 @@ import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useLang } from '../../contexts/LanguageContext.jsx';
 
-const links = [['#about', 'aboutEyebrow'], ['#campaigns', 'campaigns'], ['#active-members', 'activeMembers'], ['#notices', 'notices']];
+const links = [['#about', 'aboutEyebrow'], ['#active-members', 'activeMembers'], ['#notices', 'notices']];
 const bangla = '\u09ac\u09be\u0982\u09b2\u09be';
 
 export default function PublicHeader() {

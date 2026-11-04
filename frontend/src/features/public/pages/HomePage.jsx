@@ -2,7 +2,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import AboutSection from '../components/AboutSection.jsx';
-import CampaignsSection from '../components/CampaignsSection.jsx';
 import ActiveMembers from '../components/ActiveMembers.jsx';
 import HeroSection from '../components/HeroSection.jsx';
 import NoticeSection from '../components/NoticeSection.jsx';
@@ -57,5 +56,5 @@ export default function HomePage() {
     const sectionId = decodeURIComponent(hash.slice(1));
     requestAnimationFrame(() => document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   }, [pathname, search, hash, navigate]);
-  return <div className="overflow-hidden"><HeroSection />{content.hasError && <div className="page-shell pt-4"><p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{t('connection')} {t('retry')}</p></div>}<AboutSection /><CampaignsSection /><ActiveMembers members={content.members} /><NoticeSection notices={content.notices} /></div>;
+  return <div className="overflow-hidden"><HeroSection />{content.hasError && <div className="page-shell pt-4"><p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{t('connection')} {t('retry')}</p></div>}<AboutSection /><ActiveMembers members={content.members} /><NoticeSection notices={content.notices} /></div>;
 }
