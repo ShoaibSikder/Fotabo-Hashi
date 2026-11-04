@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *
@@ -55,6 +57,16 @@ if not CORS_ALLOWED_ORIGINS or not CSRF_TRUSTED_ORIGINS:
     )
 if not FRONTEND_BASE_URL.startswith("https://"):
     raise ImproperlyConfigured("Production FRONTEND_BASE_URL must be an HTTPS URL.")
+frontend_url = urlparse(FRONTEND_BASE_URL)
+frontend_origin = f"{frontend_url.scheme}://{frontend_url.netloc}".rstrip("/")
+if frontend_origin not in CORS_ALLOWED_ORIGINS:
+    raise ImproperlyConfigured(
+        "FRONTEND_BASE_URL must also be listed in CORS_ALLOWED_ORIGINS."
+    )
+if frontend_origin not in CSRF_TRUSTED_ORIGINS:
+    raise ImproperlyConfigured(
+        "FRONTEND_BASE_URL must also be listed in CSRF_TRUSTED_ORIGINS."
+    )
 if not RESEND_API_KEY or not RESEND_FROM_EMAIL:
     raise ImproperlyConfigured(
         "RESEND_API_KEY and RESEND_FROM_EMAIL are required in production."

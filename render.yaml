@@ -2,7 +2,7 @@ services:
   - type: keyvalue
     name: fotabo-hashi-redis
     plan: 256mb
-    region: singapore
+    region: oregon
     ipAllowList: []
     maxmemoryPolicy: allkeys-lru
     persistenceMode: journal-snapshot
@@ -11,7 +11,7 @@ services:
     name: fotabo-hashi-api
     runtime: python
     plan: 0.5c-512mb
-    region: singapore
+    region: oregon
     rootDir: backend
     buildCommand: bash build.sh
     preDeployCommand: bash migrate.sh

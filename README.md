@@ -220,7 +220,7 @@ Base URL: `https://<api-host>/api/v1/` (locally: `http://127.0.0.1:8000/api/v1/`
 ### Requirements
 
 - Python 3.13
-- Node.js 20 or later (CI uses Node.js 22)
+- Node.js 22 (matches Vercel and CI)
 - A Supabase project and its PostgreSQL connection URI (use a separate project for development when possible)
 
 ### Backend (Windows PowerShell)
@@ -283,26 +283,20 @@ GitHub Actions runs the backend checks with PostgreSQL and Redis services and ru
 
 ## Deployment
 
-### Render API
-
-1. Create a Render Blueprint from [`render.yaml`](render.yaml).
-2. Set the required production environment variables in Render. The backend requires a PostgreSQL `DATABASE_URL`, domain and CORS/CSRF configuration, Supabase Storage credentials, and a Resend API key and sender.
-3. Point `FRONTEND_BASE_URL` to the deployed frontend. Add the frontend HTTPS origin to both `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`; set `DJANGO_ALLOWED_HOSTS` to the API hostname.
-4. Render builds the backend, runs migrations in the pre-deploy step, and starts Gunicorn. The blueprint provides a private Redis service.
-
-### Vercel frontend
-
-1. Import the repository and set the Vercel project root to `frontend`.
-2. Set `VITE_API_BASE_URL` to `https://<api-host>/api/v1`.
-3. Deploy and verify the public pages, login/logout, password reset, donor search, blood requests, and administrator access.
-
-Use HTTPS custom domains for both services. Frontend and API subdomains under the same parent domain work well with secure cross-origin cookies. Keep the database and Render service in nearby regions to reduce round-trip latency. After deployment, check `https://<api-host>/api/v1/health/ready/` and create the initial administrator from the Render Shell:
+1. Create the Vercel project from this repository and set **Root Directory** to `frontend`. The repository config selects Vite, runs `npm run build`, publishes `dist`, and rewrites client routes to `index.html`.
+2. Add `VITE_API_BASE_URL=https://<render-api-host>/api/v1` to the Vercel Production environment. Deploy the frontend once to get its HTTPS origin.
+3. Create a Render Blueprint from [`render.yaml`](render.yaml). The API service's `preDeployCommand` runs migrations and requires a paid Render web-service plan. The blueprint provisions Redis and starts Django with Gunicorn.
+4. Set Render's `DATABASE_URL` to the Supabase PostgreSQL pooler URI and enter `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` as secret environment values. Keep the Supabase service-role key and database password only on the backend.
+5. Set `FRONTEND_BASE_URL` to the Vercel HTTPS origin. Add that exact origin to both `CORS_ALLOWED_ORIGINS` and `CSRF_TRUSTED_ORIGINS`. Set `DJANGO_ALLOWED_HOSTS` to the Render API hostname; Render also supplies `RENDER_EXTERNAL_HOSTNAME`.
+6. Deploy the Render service and confirm `https://<render-api-host>/api/v1/health/live/` returns successfully. Then use Render Shell to create the first administrator:
 
 ```bash
 python manage.py createsuperuser
 ```
 
-The production settings require `STORAGE_BACKEND=supabase`, valid Supabase credentials, and a verified Resend sender. HSTS subdomain and preload options should only be enabled after all affected subdomains are HTTPS-only.
+7. Verify readiness at `https://<render-api-host>/api/v1/health/ready/`, then check the deployed site’s registration, login/logout, password reset, donor search, blood requests, and admin actions.
+
+Production settings require Supabase Storage and a verified Resend sender. Use HTTPS domains for both services. The Render API and Redis are configured in Oregon to match the current Supabase `us-west-2` database region and reduce database round-trip latency. If the Supabase project is moved to another region, move the Render services nearby as well. Enable HSTS subdomains or preload only after every affected subdomain is HTTPS-only.
 
 ## License
 
