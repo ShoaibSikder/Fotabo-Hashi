@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="frontend/public/images/Fotabo_Hashi_Logo.svg" alt="Fotabo Hashi logo" width="112" />
+  <img src="frontend/public/images/fotabo-hashi-logo.webp" alt="Fotabo Hashi logo" width="112" />
 </p>
 
 <h1 align="center">Fotabo Hashi</h1>
