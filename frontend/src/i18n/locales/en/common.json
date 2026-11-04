@@ -1,6 +1,8 @@
 {
   "brand": "Fotabo Hashi",
   "login": "Log in",
+  "signingIn": "Signing in…",
+  "creatingAccount": "Creating account…",
   "logout": "Log out",
   "register": "Create account",
   "profile": "My profile",

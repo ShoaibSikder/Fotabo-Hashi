@@ -55,7 +55,9 @@ export default function LoginPage() {
             </label>
             <Link className="font-bold text-brand hover:underline" to="/forgot-password">{t('forgotPassword')}</Link>
           </div>
-          <Button type="submit" variant="primary" loading={busy} className="w-full !rounded-full">{t('login')} <ArrowRight size={17} /></Button>
+          <Button type="submit" variant="primary" loading={busy} loadingStyle="donation" className="w-full !rounded-full">
+            {busy ? t('signingIn') : t('login')} {!busy && <ArrowRight size={17} />}
+          </Button>
         </form>
         <p className="mt-6 text-center text-sm text-muted">
           Don’t have an account? <Link className="font-extrabold text-brand hover:underline" to="/register">Register</Link>

@@ -138,8 +138,8 @@ export default function RegisterPage() {
             />
             <button type="button" onClick={() => setShowConfirmPassword((shown) => !shown)} aria-label={t(showConfirmPassword ? 'hidePassword' : 'showPassword')} aria-pressed={showConfirmPassword} className="absolute right-2 top-[1.95rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"><span className="sr-only">{t(showConfirmPassword ? 'hidePassword' : 'showPassword')}</span>{showConfirmPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button>
           </div>
-          <Button type="submit" variant="primary" loading={busy} className="w-full !rounded-full">
-            {t('register')} <ArrowRight size={17} />
+          <Button type="submit" variant="primary" loading={busy} loadingStyle="donation" className="w-full !rounded-full">
+            {busy ? t('creatingAccount') : t('register')} {!busy && <ArrowRight size={17} />}
           </Button>
         </form>
 
