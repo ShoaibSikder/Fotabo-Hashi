@@ -9,10 +9,12 @@ names and placeholders only.
 Set `DATABASE_URL` to the project's PostgreSQL connection URI. Copy the URI
 from Supabase's Connect panel; shared pooler URIs use the project-scoped user
 `postgres.<project-ref>`. Include `sslmode=require` and percent-encode reserved
-characters in the password. The settings parser can add the project ref when
-the shared-pooler URI has the default `postgres` user. `DB_CONN_MAX_AGE`
-controls Django's persistent connection lifetime (60 seconds by default).
-`DATABASE_URL` is required; there is no local PostgreSQL fallback.
+characters in the password. Development and production settings reject
+non-Supabase database hosts and connections that disable TLS. Use a separate
+Supabase project for development and production where possible. The isolated
+CI test settings are the only exception and use a disposable PostgreSQL service.
+`DB_CONN_MAX_AGE` controls Django's persistent connection lifetime (60 seconds
+by default). There is no local application database fallback.
 
 Use a dedicated application database role with only the privileges Fotabo Hashi
 needs; do not use a Supabase superuser for normal application traffic because

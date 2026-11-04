@@ -91,7 +91,7 @@ def database_from_url(database_url):
 
     query = parse_qs(parsed.query)
     sslmode = (query.get("sslmode") or [None])[0]
-    options = {"sslmode": sslmode or ("require" if not DEBUG else "prefer")}
+    options = {"sslmode": sslmode or "require"}
     database_user = unquote(parsed.username or "")
     if database_user == "postgres" and parsed.hostname.endswith(".pooler.supabase.com"):
         project_host = urlparse(SUPABASE_URL).hostname or ""
@@ -109,6 +109,24 @@ def database_from_url(database_url):
         "OPTIONS": options,
         "CONN_MAX_AGE": DB_CONN_MAX_AGE,
     }
+
+
+def validate_supabase_database_url(database_url):
+    """Reject non-Supabase database hosts outside the isolated test settings."""
+    parsed = urlparse(database_url)
+    host = (parsed.hostname or "").lower()
+    is_supabase_host = host.endswith((".supabase.co", ".pooler.supabase.com"))
+    sslmode = (parse_qs(parsed.query).get("sslmode") or [""])[0].lower()
+
+    if not is_supabase_host:
+        raise ImproperlyConfigured(
+            "Development and production require Supabase PostgreSQL. "
+            "Set DATABASE_URL to the Supabase direct or pooler connection URI."
+        )
+    if sslmode in {"disable", "allow", "prefer"}:
+        raise ImproperlyConfigured(
+            "Supabase PostgreSQL connections must use TLS; set sslmode=require."
+        )
 
 
 if not DATABASE_URL:

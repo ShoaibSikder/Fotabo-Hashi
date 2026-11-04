@@ -3,6 +3,7 @@ from django.core.exceptions import ImproperlyConfigured
 from .base import *
 
 DEBUG = False
+validate_supabase_database_url(DATABASE_URL)
 
 # Render terminates TLS at its edge and forwards the original scheme in this
 # header. Django needs it to recognize HTTPS and avoid redirect loops.

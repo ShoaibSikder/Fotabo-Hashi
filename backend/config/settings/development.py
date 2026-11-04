@@ -5,6 +5,7 @@ from .base import env
 
 DEBUG = True
 ALLOWED_HOSTS = ["127.0.0.1", "localhost"]
+validate_supabase_database_url(DATABASE_URL)
 
 LOGGING = {
     "version": 1,
