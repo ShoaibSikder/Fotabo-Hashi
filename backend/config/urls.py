@@ -3,7 +3,12 @@ from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
+from api.v1.views import LivenessCheckView
+
 urlpatterns = [
+    # Keep the service root useful for browser visits and generic uptime probes.
+    # Render's configured health check still uses the explicit API liveness URL.
+    path("", LivenessCheckView.as_view(), name="root-health"),
     path("admin/", admin.site.urls),
     path("api/v1/", include("api.v1.urls")),
 ]
