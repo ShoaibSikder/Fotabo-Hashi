@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Trophy } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { TableLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 import { apiGet } from '../../../services/apiClient.js';
@@ -31,7 +31,7 @@ export default function LeaderboardPage() {
       </Card>
       {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>}
       {busy ? (
-        <div className="py-12 text-center"><Spinner label={t('loading')} /></div>
+        <TableLoadingSkeleton columns={4} />
       ) : rows.length ? (
         <Card className="!p-0">
           <div className="overflow-x-auto rounded-2xl" role="region" aria-label={t('leaderboard')} tabIndex="0">

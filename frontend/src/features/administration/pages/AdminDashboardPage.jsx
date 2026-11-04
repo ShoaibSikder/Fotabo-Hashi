@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Activity, ArrowRight, HeartPulse, UsersRound, Droplet, ShieldCheck, ClipboardCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Card from '../../../components/ui/Card.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { ListLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
+import Skeleton from '../../../components/ui/Skeleton.jsx';
 import { apiGet } from '../../../services/apiClient.js';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
@@ -71,13 +72,13 @@ export default function AdminDashboardPage() {
 
         <Card className="!border-slate-200 !bg-white !shadow-sm">
           <div className="flex items-center justify-between gap-3"><h2 className="font-heading text-lg font-extrabold text-slate-900">Recent activity</h2><Link to="/admin/audit" className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline">View all <ArrowRight size={14} /></Link></div>
-          {loading ? <div className="py-10"><Spinner label="Loading system activity…" /></div> : activity.length ? <ul className="mt-4 divide-y divide-slate-100">{activity.map((row) => <li key={row.id} className="py-3 first:pt-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{row.description || `${row.action} ${row.resource_type}`}</p><p className="mt-1 truncate text-xs text-slate-500">{row.actor_email || 'System'} · {row.resource_type}</p></div><time className="shrink-0 text-[11px] text-slate-400" dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString()}</time></div></li>)}</ul> : <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No audit events are available yet.</p>}
+          {loading ? <ListLoadingSkeleton count={4} className="mt-3" /> : activity.length ? <ul className="mt-4 divide-y divide-slate-100">{activity.map((row) => <li key={row.id} className="py-3 first:pt-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{row.description || `${row.action} ${row.resource_type}`}</p><p className="mt-1 truncate text-xs text-slate-500">{row.actor_email || 'System'} · {row.resource_type}</p></div><time className="shrink-0 text-[11px] text-slate-400" dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString()}</time></div></li>)}</ul> : <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No audit events are available yet.</p>}
         </Card>
       </div>
 
       <Card className="!border-slate-200 !bg-white !shadow-sm">
         <h2 className="font-heading text-lg font-extrabold text-slate-900">{t('last7Days')}</h2>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['New accounts', overview?.users_last_7_days], ['New requests', overview?.requests_last_7_days], ['Active accounts', overview?.active_users], ['Available donors', overview?.donors]].map(([label, value]) => <div key={label} className="rounded-xl bg-slate-50 p-3"><p className="text-[11px] font-semibold text-slate-600">{label}</p><p className="mt-1 text-lg font-extrabold text-slate-900">{loading ? '…' : value ?? '—'}</p></div>)}</div>
+        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['New accounts', overview?.users_last_7_days], ['New requests', overview?.requests_last_7_days], ['Active accounts', overview?.active_users], ['Available donors', overview?.donors]].map(([label, value]) => <div key={label} className="rounded-xl bg-slate-50 p-3"><p className="text-[11px] font-semibold text-slate-600">{label}</p>{loading ? <Skeleton className="mt-2 h-6 w-14" /> : <p className="mt-1 text-lg font-extrabold text-slate-900">{value ?? '—'}</p>}</div>)}</div>
       </Card>
     </div>
   );

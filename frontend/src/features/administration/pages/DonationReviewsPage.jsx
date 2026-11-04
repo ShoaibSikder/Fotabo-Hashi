@@ -5,7 +5,7 @@ import Button from '../../../components/ui/Button.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import FilterMenu from '../../../components/ui/FilterMenu.jsx';
 import Pagination from '../../../components/ui/Pagination.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { TableLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import { apiGet, apiPost } from '../../../services/apiClient.js';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
@@ -78,7 +78,7 @@ export default function DonationReviewsPage() {
           <Select id="donation-count-change" label={t('changeDirection')} value={change} onChange={(event) => { setChange(event.target.value); setPage(1); }}><option value="">{t('allChanges')}</option><option value="increase">{t('increase')}</option><option value="decrease">{t('decrease')}</option></Select>
         </FilterMenu>
       </form>
-      {busy ? <div className="py-12"><Spinner label={t('loading')} /></div> : rows.length ? <>
+      {busy ? <TableLoadingSkeleton columns={6} /> : rows.length ? <>
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100" role="region" aria-label={t('adminDonationReviews')} tabIndex="0">
           <table className="w-full min-w-[980px] whitespace-nowrap text-left text-sm">
             <thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100">

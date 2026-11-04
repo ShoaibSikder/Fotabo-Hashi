@@ -5,7 +5,7 @@ import Input from '../../../components/ui/Input.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Pagination from '../../../components/ui/Pagination.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { ListLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import Avatar from '../../../components/ui/Avatar.jsx';
 import ResponsiveDetailPanel from '../../../components/ui/ResponsiveDetailPanel.jsx';
 import { apiDelete, apiGet, apiPatch, apiPost } from '../../../services/apiClient.js';
@@ -149,7 +149,7 @@ function MemberManager() {
     <div className="grid items-start gap-5 2xl:grid-cols-[1.1fr_.9fr]">
       <Card className="!border-slate-200 !bg-white !p-4 !shadow-sm sm:!p-5">
         <div className="mb-4 flex items-center justify-between gap-3"><h2 className="font-heading text-lg font-extrabold text-slate-900">{t('activeMembersAdmin')}</h2><Button type="button" variant="primary" onClick={() => { setSelected(null); setEditorOpen(true); setError(''); setFeedback(''); }}><Plus size={16} /> {t('newMember')}</Button></div>
-        {loading ? <div className="py-12"><Spinner label={t('loading')} /></div> : members.length ? <>
+        {loading ? <ListLoadingSkeleton /> : members.length ? <>
           <div className="space-y-2">{members.map((member) => <button key={member.id} type="button" onClick={() => { setSelected(member); setEditorOpen(true); setFeedback(''); setError(''); }} className={`flex w-full cursor-pointer items-center gap-3 rounded-xl border p-3 text-left transition-colors hover:border-rose-200 hover:bg-rose-50/40 ${selected?.id === member.id ? 'border-rose-200 bg-rose-50/50' : 'border-slate-100 bg-white'}`}>
             <MemberAvatar member={member} />
             <span className="min-w-0 flex-1"><span className="block truncate text-sm font-extrabold text-slate-800">{member.name}</span><span className="mt-0.5 block truncate text-xs text-slate-500">{member.designation || member.social_url}</span></span>
@@ -272,7 +272,7 @@ function NoticeManager() {
     <div className="grid items-start gap-5 2xl:grid-cols-[1.1fr_.9fr]">
       <Card className="!border-slate-200 !bg-white !p-4 !shadow-sm sm:!p-5">
         <div className="mb-4 flex items-center justify-between gap-3"><h2 className="font-heading text-lg font-extrabold text-slate-900">{t('managePublicNotices')}</h2><Button type="button" variant="primary" onClick={() => { setSelected(null); setEditorOpen(true); setError(''); setFeedback(''); }}><Plus size={16} /> {t('newNotice')}</Button></div>
-        {loading ? <div className="py-12"><Spinner label={t('loading')} /></div> : notices.length ? <>
+        {loading ? <ListLoadingSkeleton /> : notices.length ? <>
           <div className="space-y-2">{notices.map((item) => <button key={item.id} type="button" onClick={() => { setSelected(item); setEditorOpen(true); setFeedback(''); setError(''); }} className={`flex w-full cursor-pointer items-start gap-3 rounded-xl border p-3 text-left transition-colors hover:border-rose-200 hover:bg-rose-50/40 ${selected?.id === item.id ? 'border-rose-200 bg-rose-50/50' : 'border-slate-100 bg-white'}`}>
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-brand"><FileText size={18} /></span>
             <span className="min-w-0 flex-1"><span className="flex flex-wrap items-center gap-2"><span className="truncate text-sm font-extrabold text-slate-800">{item.title}</span><span className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold ${item.is_published ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{t(item.is_published ? 'published' : 'draft')}</span></span><span className="mt-1 block line-clamp-2 text-xs leading-5 text-slate-500">{item.content}</span>{item.published_at && <span className="mt-1 block text-[11px] text-slate-400">{formatPublishedDate(item.published_at)}</span>}</span>

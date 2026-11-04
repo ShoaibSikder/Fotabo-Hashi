@@ -3,7 +3,8 @@ import { Activity, ArrowRight, Droplet, MapPin, Phone, Plus, Search, UserRound }
 import { Link } from 'react-router-dom';
 import Card from '../../../components/ui/Card.jsx';
 import Avatar from '../../../components/ui/Avatar.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import Skeleton from '../../../components/ui/Skeleton.jsx';
+import { ListLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import { useAuthCtx } from '../../../contexts/AuthContext.jsx';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
 import { apiGet } from '../../../services/apiClient.js';
@@ -51,7 +52,7 @@ export default function DashboardPage() {
       {loadError && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">{t('connection')} {t('retry')}</p>}
       <Card className="!p-5 sm:!p-6">
         {loading && !profile ? (
-          <div className="flex min-h-28 items-center justify-center"><Spinner label="Loading dashboard…" /></div>
+          <div className="flex items-center gap-4"><Skeleton className="h-14 w-14 shrink-0 rounded-full sm:!h-[76px] sm:!w-[76px]" /><div className="flex-1 space-y-3"><Skeleton className="h-6 w-48" /><div className="grid gap-2 sm:grid-cols-2"><Skeleton className="h-4 w-40" /><Skeleton className="h-4 w-36" /><Skeleton className="h-4 w-44" /><Skeleton className="h-4 w-16" /></div></div></div>
         ) : (
           <div className="flex items-start gap-4 sm:items-center sm:gap-6">
             <Avatar name={name} size="lg" className="!h-14 !w-14 self-start !text-sm sm:!h-[76px] sm:!w-[76px] sm:!text-base" />
@@ -84,7 +85,7 @@ export default function DashboardPage() {
             <h2 className="font-heading text-lg font-extrabold text-brand-dark">Your recent requests</h2>
             <Link to="/requests" className="inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">All requests <ArrowRight size={15} /></Link>
           </div>
-          {loading ? <div className="py-8"><Spinner label="Loading requests…" /></div> : requests.length ? (
+          {loading ? <ListLoadingSkeleton count={3} className="mt-3" /> : requests.length ? (
             <div className="divide-y divide-brand-dark/10">
               {requests.map((request) => (
                 <Link key={request.id} to={`/requests/${request.id}`} className="flex items-center gap-3 py-3 first:pt-1 hover:bg-white/40">
@@ -116,7 +117,7 @@ function Contact({ icon, value }) {
 }
 
 function MetricCard({ to, icon, label, value, loading }) {
-  return <Link to={to} className="group block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"><Card className="h-full !p-5 transition-transform group-hover:-translate-y-0.5 sm:!p-6"><div className="flex items-center gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">{icon}</span><div className="min-w-0"><p className="text-xs font-semibold text-muted sm:text-sm">{label}</p><p className="mt-1 truncate text-2xl font-extrabold leading-none text-brand-dark">{loading ? '…' : value ?? '—'}</p></div></div></Card></Link>;
+  return <Link to={to} className="group block rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"><Card className="h-full !p-5 transition-transform group-hover:-translate-y-0.5 sm:!p-6"><div className="flex items-center gap-4"><span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand">{icon}</span><div className="min-w-0"><p className="text-xs font-semibold text-muted sm:text-sm">{label}</p>{loading ? <Skeleton className="mt-2 h-6 w-16" /> : <p className="mt-1 truncate text-2xl font-extrabold leading-none text-brand-dark">{value ?? '—'}</p>}</div></div></Card></Link>;
 }
 
 function QuickAction({ to, icon, label }) {

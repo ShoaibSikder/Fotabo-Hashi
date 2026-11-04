@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { MapPin, Phone, Search } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { TableLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Pagination from '../../../components/ui/Pagination.jsx';
 import FilterMenu from '../../../components/ui/FilterMenu.jsx';
@@ -64,7 +64,7 @@ export default function DonorSearchPage() {
 
     <div className="flex items-center justify-between"><h2 className="text-lg font-extrabold text-brand-dark">{t('availableDonors')}</h2>{!loading && <span className="text-sm text-muted">{t('foundCount', { count })}</span>}</div>
     {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>}
-    {loading ? <div className="py-12 text-center"><Spinner label={t('searchingDonors')} /></div> : donors.length ? <>
+    {loading ? <TableLoadingSkeleton columns={6} /> : donors.length ? <>
       <Card className="!p-0">
         <div className="overflow-x-auto rounded-2xl" role="region" aria-label={t('availableDonors')} tabIndex="0">
           <table className="w-full min-w-[940px] whitespace-nowrap text-left text-sm">

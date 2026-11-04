@@ -4,7 +4,7 @@ import { ArrowRight, Droplet, MapPin, Plus, Search } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { CardGridLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import EmptyState from '../../../components/ui/EmptyState.jsx';
 import Pagination from '../../../components/ui/Pagination.jsx';
 import FilterMenu from '../../../components/ui/FilterMenu.jsx';
@@ -67,7 +67,7 @@ export default function RequestsPage() {
       </FilterMenu>
     </form></Card>
     {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>}
-    {busy ? <div className="py-12 text-center"><Spinner label={t('loadingRequests')} /></div> : rows.length ? <>
+    {busy ? <CardGridLoadingSkeleton /> : rows.length ? <>
       <div className="grid gap-4 md:grid-cols-2">{rows.map((request) => <Card key={request.id}><div className="flex items-start justify-between gap-3"><div className="flex items-center gap-3"><span className="grid h-11 w-11 place-items-center rounded-xl bg-brand-soft text-brand"><Droplet /></span><div><h2 className="font-extrabold text-brand-dark">{request.blood_group} {t('bloodNeeded')}</h2><p className="text-sm text-muted">{t('unitsRequested', { count: request.required_units || 1 })}</p></div></div><Badge tone={request.status === 'ACTIVE' ? 'red' : request.status === 'FULFILLED' ? 'green' : 'neutral'}>{t(request.status === 'ACTIVE' ? 'active' : request.status === 'FULFILLED' ? 'fulfilled' : 'cancelled')}</Badge></div><p className="mt-4 flex items-center gap-2 text-sm text-muted"><MapPin size={16} />{request.location || t('locationNotListed')}</p>{request.description && <p className="mt-3 line-clamp-3 text-sm leading-6 text-ink">{request.description}</p>}<div className="mt-5 flex justify-end"><Link className="inline-flex items-center gap-2 text-sm font-extrabold text-brand" to={`/requests/${request.id}`}>{t('viewDetails')} <ArrowRight size={16} /></Link></div></Card>)}</div>
       <Pagination page={page} pages={Math.max(1, Math.ceil(count / PAGE_SIZE))} onChange={setPage} />
     </> : <EmptyState title={t('noRequestsFound')} description={appliedSearch ? t('changeFilters') : t('requestWillAppear')} action={<Link to="/requests/new"><Button variant="primary"><Plus size={16} />{t('createRequest')}</Button></Link>} />}

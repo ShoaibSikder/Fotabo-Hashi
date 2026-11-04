@@ -6,7 +6,7 @@ import Card from '../../../components/ui/Card.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Button from '../../../components/ui/Button.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { ProfileLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 import { apiGet, apiPatch } from '../../../services/apiClient.js';
 import { BLOOD_GROUPS } from '../../../utils/constants.js';
@@ -50,7 +50,7 @@ export default function ProfilePage() {
 
   return <div className="page-enter mx-auto max-w-3xl space-y-6">
     <div><h1 className="text-3xl font-extrabold text-brand-dark">{t('profile')}</h1></div>
-    {busy ? <div className="py-10 text-center"><Spinner label="Loading your profile…" /></div> : <Card>
+    {busy ? <ProfileLoadingSkeleton /> : <Card>
       <div className="mb-6 flex items-center gap-4"><Avatar name={form.name || user?.email} size="lg"/><div><h2 className="font-extrabold text-brand-dark">{form.name || user?.email}</h2><p className="text-sm text-muted">{user?.email}</p></div></div>
       <form onSubmit={submit} className="space-y-5">
         {message && <p role="status" className="rounded-xl bg-emerald-50 p-3 text-sm font-semibold text-emerald-800">{message}</p>}

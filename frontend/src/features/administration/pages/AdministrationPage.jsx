@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import Card from '../../../components/ui/Card.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import { TableLoadingSkeleton } from '../../../components/ui/DataLoadingSkeleton.jsx';
 import Pagination from '../../../components/ui/Pagination.jsx';
 import { apiGet } from '../../../services/apiClient.js';
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
@@ -33,7 +33,7 @@ export default function AdministrationPage() {
     {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">{error}</p>}
     <Card className="!border-slate-200 !bg-white !shadow-sm">
       <h2 className="font-heading text-lg font-extrabold text-slate-900">{t('recentActivity')}</h2>
-      {busy ? <div className="py-10"><Spinner label={t('loadingSystemActivity')} /></div> : rows.length ? <>
+      {busy ? <TableLoadingSkeleton columns={5} /> : rows.length ? <>
         <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100" role="region" aria-label={t('adminAudit')} tabIndex="0"><table className="w-full min-w-[780px] whitespace-nowrap text-left text-sm"><thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100"><th scope="col" className="px-3 py-3">{t('when')}</th><th scope="col" className="px-3 py-3">{t('actor')}</th><th scope="col" className="px-3 py-3">{t('action')}</th><th scope="col" className="px-3 py-3">{t('resource')}</th><th scope="col" className="px-3 py-3">{t('details')}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/70"><td className="px-3 py-3 text-xs text-slate-500">{new Intl.DateTimeFormat(lang === 'bn' ? 'bn-BD' : 'en', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(row.created_at))}</td><td className="px-3 py-3">{row.actor_email ? t('admin') : t('system')}</td><td className="px-3 py-3 font-bold text-brand">{row.action}</td><td className="px-3 py-3">{row.resource_type} {row.resource_id}</td><td className="max-w-[360px] truncate px-3 py-3 text-slate-600" title={row.description || ''}>{row.description || '—'}</td></tr>)}</tbody></table></div>
         <div className="mt-4"><Pagination page={page} count={count} onChange={setPage} /></div>
       </> : <p className="mt-5 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">{t('noAuditEvents')}</p>}

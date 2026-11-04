@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Check, Droplet, MapPin, Pencil, Save, X } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
-import Spinner from '../../../components/ui/Spinner.jsx';
+import Skeleton from '../../../components/ui/Skeleton.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
 import Textarea from '../../../components/ui/Textarea.jsx';
@@ -86,7 +86,7 @@ export default function RequestDetailsPage() {
         <ArrowLeft size={16} /> {t('allRequests')}
       </Link>
       {busy ? (
-        <div className="py-12 text-center"><Spinner label="Loading request…" /></div>
+        <Card className="space-y-5"><div className="flex justify-between"><Skeleton className="h-7 w-24" /><Skeleton className="h-4 w-20" /></div><div className="grid gap-4 sm:grid-cols-2"><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /><Skeleton className="h-20" /></div><Skeleton className="h-24 w-full" /></Card>
       ) : error && !item ? (
         <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>
       ) : item && (
