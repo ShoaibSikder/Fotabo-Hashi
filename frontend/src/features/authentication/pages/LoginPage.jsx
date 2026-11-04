@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import Card from '../../../components/ui/Card.jsx';
 import Button from '../../../components/ui/Button.jsx';
@@ -14,6 +14,7 @@ export default function LoginPage() {
   const location = useLocation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -41,7 +42,29 @@ export default function LoginPage() {
         <form onSubmit={submit} className="mt-7 space-y-5">
           {error && <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-800">{error}</div>}
           <Input id="email" label={t('emailAddress')} type="email" autoComplete="email" required placeholder="e.g. name@example.com" value={email} onFocus={warmCsrfToken} onChange={(event) => setEmail(event.target.value)} />
-          <Input id="password" label={t('password')} type="password" autoComplete="current-password" required placeholder="Enter your password" value={password} onChange={(event) => setPassword(event.target.value)} />
+          <div className="relative">
+            <Input
+              id="password"
+              label={t('password')}
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              required
+              placeholder="Enter your password"
+              inputClassName="pr-12"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((shown) => !shown)}
+              aria-label={t(showPassword ? 'hidePassword' : 'showPassword')}
+              aria-pressed={showPassword}
+              className="absolute right-2 top-[1.95rem] grid h-9 w-9 place-items-center rounded-lg text-slate-500 hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand"
+            >
+              <span className="sr-only">{t(showPassword ? 'hidePassword' : 'showPassword')}</span>
+              {showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+            </button>
+          </div>
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
             <label htmlFor="remember-me" className="inline-flex cursor-pointer items-center gap-2 font-medium text-muted">
               <input
