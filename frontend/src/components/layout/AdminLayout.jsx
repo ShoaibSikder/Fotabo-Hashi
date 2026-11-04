@@ -18,6 +18,7 @@ import PublicFooter from './PublicFooter.jsx';
 import NotificationCenter from './NotificationCenter.jsx';
 import { useLang } from '../../contexts/LanguageContext.jsx';
 import { DashboardContentSkeleton } from '../ui/RouteLoadingSkeleton.jsx';
+import LanguageToggle from '../ui/LanguageToggle.jsx';
 
 const adminNavigation = [
   { to: '/admin/dashboard', label: 'Overview', Icon: LayoutDashboard },
@@ -30,7 +31,7 @@ const adminNavigation = [
 
 export default function AdminLayout({ loading = false }) {
   const { user, logout } = useAuthCtx();
-  const { t, toggle, lang } = useLang();
+  const { t } = useLang();
   const navigate = useNavigate();
   const [profileOpen, setProfileOpen] = useState(false);
   const profileMenuRef = useRef(null);
@@ -69,7 +70,7 @@ export default function AdminLayout({ loading = false }) {
             </span>
           </NavLink>
           <div className="flex shrink-0 items-center gap-1 sm:gap-4">
-            <button type="button" onClick={toggle} aria-label={t('changeLanguage')} className="inline-flex cursor-pointer items-center gap-1 rounded-lg px-1.5 py-2 text-[11px] font-bold text-slate-600 hover:bg-slate-50 sm:px-2 sm:text-xs">{lang === 'en' ? 'BN' : 'EN'}</button>
+            <LanguageToggle compact />
             <NotificationCenter />
             <span className="hidden items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1.5 text-[11px] font-extrabold uppercase tracking-wide text-brand sm:inline-flex"><ShieldCheck size={14} /> {t('admin')}</span>
             <div className="relative" ref={profileMenuRef}>
