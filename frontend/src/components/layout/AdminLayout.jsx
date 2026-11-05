@@ -90,22 +90,22 @@ export default function AdminLayout({ loading = false }) {
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1600px] flex-1 items-start gap-6 px-4 py-5 sm:px-6 sm:py-7 lg:gap-8 lg:px-8">
+      <div className="mx-auto flex w-full max-w-[1600px] flex-1 items-start gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:gap-8 lg:px-8">
         <aside className="sticky top-[92px] hidden h-[calc(100vh-112px)] w-64 shrink-0 xl:block">
           <nav className="flex h-full flex-col rounded-2xl border border-slate-200 bg-white p-3 shadow-sm" aria-label={t('administrationNavigation')}>
             <AdminNavItems />
           </nav>
         </aside>
 
-        <main className="min-w-0 flex-1 pb-24 xl:pb-8">
+        <main className="min-w-0 w-full flex-1 pb-24 xl:pb-8">
           {loading ? <DashboardContentSkeleton /> : <Suspense fallback={<DashboardContentSkeleton />}><Outlet /></Suspense>}
         </main>
       </div>
 
-      <nav className="fixed inset-x-3 bottom-3 z-40 flex gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-lg xl:hidden" aria-label={t('administrationNavigation')}>
+      <nav className="admin-mobile-nav fixed inset-x-2 bottom-2 z-40 flex gap-1 overflow-x-auto overscroll-x-contain rounded-2xl border border-slate-200 bg-white p-2 shadow-lg sm:inset-x-4 sm:bottom-4 xl:hidden" aria-label={t('administrationNavigation')}>
         {adminNavigation.map(({ to, label, Icon }) => (
-        <NavLink key={to} to={to} aria-label={t(({ Overview: 'adminOverview', 'People & donors': 'adminUsers', Leaderboard: 'adminDonationReviews', 'Blood requests': 'adminRequests', 'Public content': 'adminPublicContent', 'Audit activity': 'adminAudit' })[label])} className={({ isActive }) => `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-2 text-[9px] font-bold transition-colors ${isActive ? 'bg-rose-50 text-brand' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
-            <Icon size={18} /><span className="max-w-full truncate whitespace-nowrap">{t(({ Overview: 'adminOverview', 'People & donors': 'adminUsers', Leaderboard: 'adminDonationReviews', 'Blood requests': 'adminRequests', 'Public content': 'adminPublicContent', 'Audit activity': 'adminAudit' })[label])}</span>
+        <NavLink key={to} to={to} aria-label={t(({ Overview: 'adminOverview', 'People & donors': 'adminUsers', Leaderboard: 'adminDonationReviews', 'Blood requests': 'adminRequests', 'Public content': 'adminPublicContent', 'Audit activity': 'adminAudit' })[label])} className={({ isActive }) => `flex min-h-14 min-w-[76px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2 py-2 text-[10px] font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${isActive ? 'bg-rose-50 text-brand' : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'}`}>
+            <Icon size={19} /><span className="whitespace-nowrap">{t(({ Overview: 'adminOverview', 'People & donors': 'adminUsers', Leaderboard: 'adminDonationReviews', 'Blood requests': 'adminRequests', 'Public content': 'adminPublicContent', 'Audit activity': 'adminAudit' })[label])}</span>
           </NavLink>
         ))}
       </nav>
@@ -113,6 +113,7 @@ export default function AdminLayout({ loading = false }) {
     </div>
   );
 }
+
 
 function AdminNavItems() {
   const { t } = useLang();
