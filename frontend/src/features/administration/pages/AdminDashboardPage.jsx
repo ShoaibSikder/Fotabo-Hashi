@@ -62,17 +62,17 @@ export default function AdminDashboardPage() {
         <MetricCard label={t('auditEvents')} value={overview?.audit_events} detail="" Icon={Activity} />
       </section>
 
-      <div className="grid gap-5 2xl:grid-cols-[1.1fr_.9fr]">
-        <Card className="!border-slate-200 !bg-white !shadow-sm">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-5 2xl:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)]">
+        <Card className="!w-full !min-w-0 !max-w-full !border-slate-200 !bg-white !shadow-sm">
           <div className="flex items-center justify-between gap-3"><h2 className="font-heading text-lg font-extrabold text-slate-900">Manage</h2><ShieldCheck className="text-brand" size={21} /></div>
           <div className="mt-4 divide-y divide-slate-100">
             {shortcuts.map(({ to, key, Icon }) => <Link key={to} to={to} className="group flex items-center gap-3 py-4 first:pt-1 last:pb-1"><span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-rose-50 text-brand"><Icon size={18} /></span><span className="min-w-0 flex-1"><span className="block text-sm font-bold text-slate-800">{t(key)}</span></span><ArrowRight size={17} className="shrink-0 text-slate-400 transition-transform group-hover:translate-x-1 group-hover:text-brand" /></Link>)}
           </div>
         </Card>
 
-        <Card className="!border-slate-200 !bg-white !shadow-sm">
-          <div className="flex items-center justify-between gap-3"><h2 className="font-heading text-lg font-extrabold text-slate-900">Recent activity</h2><Link to="/admin/audit" className="inline-flex items-center gap-1 text-xs font-bold text-brand hover:underline">View all <ArrowRight size={14} /></Link></div>
-          {loading ? <ListLoadingSkeleton count={4} className="mt-3" /> : activity.length ? <ul className="mt-4 divide-y divide-slate-100">{activity.map((row) => <li key={row.id} className="py-3 first:pt-1"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><p className="truncate text-sm font-bold text-slate-800">{row.description || `${row.action} ${row.resource_type}`}</p><p className="mt-1 truncate text-xs text-slate-500">{row.actor_email || 'System'} · {row.resource_type}</p></div><time className="shrink-0 text-[11px] text-slate-400" dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString()}</time></div></li>)}</ul> : <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No audit events are available yet.</p>}
+        <Card className="!w-full !min-w-0 !max-w-full !border-slate-200 !bg-white !shadow-sm">
+          <div className="flex min-w-0 items-center justify-between gap-3"><h2 className="min-w-0 truncate font-heading text-lg font-extrabold text-slate-900">Recent activity</h2><Link to="/admin/audit" className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-brand hover:underline">View all <ArrowRight size={14} /></Link></div>
+          {loading ? <ListLoadingSkeleton count={4} className="mt-3" /> : activity.length ? <ul className="mt-4 min-w-0 divide-y divide-slate-100">{activity.map((row) => <li key={row.id} className="min-w-0 py-3 first:pt-1"><div className="flex min-w-0 items-start justify-between gap-2 sm:gap-3"><div className="min-w-0 flex-1"><p className="break-words text-sm font-bold text-slate-800">{row.description || `${row.action} ${row.resource_type}`}</p><p className="mt-1 break-words text-xs text-slate-500">{row.actor_email || 'System'} · {row.resource_type}</p></div><time className="max-w-20 shrink-0 text-right text-[10px] text-slate-400 sm:max-w-none sm:text-[11px]" dateTime={row.created_at}>{new Date(row.created_at).toLocaleDateString()}</time></div></li>)}</ul> : <p className="mt-6 rounded-xl bg-slate-50 p-4 text-sm text-slate-500">No audit events are available yet.</p>}
         </Card>
       </div>
 
