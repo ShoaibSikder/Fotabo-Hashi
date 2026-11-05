@@ -85,7 +85,7 @@ export default function DashboardPage() {
             <Link to="/requests" className="inline-flex items-center gap-1 text-sm font-bold text-brand hover:underline">All requests <ArrowRight size={15} /></Link>
           </div>
           {loading ? <ListLoadingSkeleton count={3} className="mt-3" /> : requests.length ? (
-            <div className="divide-y divide-brand-dark/10">
+            <div className="data-scroll-region data-scroll-compact divide-y divide-brand-dark/10" role="region" aria-label={t('requests')} tabIndex="0">
               {requests.map((request) => (
                 <Link key={request.id} to={`/requests/${request.id}`} className="flex items-center gap-3 py-3 first:pt-1 hover:bg-white/40">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Droplet size={18} /></span>

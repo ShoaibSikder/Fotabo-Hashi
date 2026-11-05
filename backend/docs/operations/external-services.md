@@ -11,8 +11,9 @@ from Supabase's Connect panel; shared pooler URIs use the project-scoped user
 `postgres.<project-ref>`. Include `sslmode=require` and percent-encode reserved
 characters in the password. Development and production settings reject
 non-Supabase database hosts and connections that disable TLS. Use a separate
-Supabase project for development and production where possible. The isolated
-CI test settings are the only exception and use a disposable PostgreSQL service.
+Supabase project for development and production where possible. Automated tests
+require a disposable localhost PostgreSQL database configured with
+`TEST_DATABASE_URL`; remote databases are refused to protect application data.
 `DB_CONN_MAX_AGE` controls Django's persistent connection lifetime (60 seconds
 by default). There is no local application database fallback.
 

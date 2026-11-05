@@ -13,8 +13,8 @@ SENTRY_DSN = ""
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 # Never create Django's test database on Supabase or another remote service.
-# CI supplies a disposable PostgreSQL service via DATABASE_URL; local runs can
-# override it explicitly with TEST_DATABASE_URL.
+# Use a disposable localhost PostgreSQL database for tests. Set
+# TEST_DATABASE_URL explicitly when it differs from the development database.
 TEST_DATABASE_URL = env("TEST_DATABASE_URL", default=DATABASE_URL).strip()
 test_database_host = (urlparse(TEST_DATABASE_URL).hostname or "").lower()
 if test_database_host not in {"localhost", "127.0.0.1", "::1"}:

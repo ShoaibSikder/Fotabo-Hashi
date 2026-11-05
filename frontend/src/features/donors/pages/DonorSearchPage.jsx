@@ -66,7 +66,7 @@ export default function DonorSearchPage() {
     {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>}
     {loading ? <TableLoadingSkeleton columns={6} /> : donors.length ? <>
       <Card className="!p-0">
-        <div className="overflow-x-auto rounded-2xl" role="region" aria-label={t('availableDonors')} tabIndex="0">
+        <div className="data-scroll-region data-table-scroll rounded-2xl" role="region" aria-label={t('availableDonors')} tabIndex="0">
           <table className="w-full min-w-[940px] whitespace-nowrap text-left text-sm">
             <thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100">
               <th scope="col" className="px-4 py-3">{t('fullName')}</th><th scope="col" className="px-4 py-3">{t('bloodGroup')}</th><th scope="col" className="px-4 py-3">{t('phoneNumber')}</th><th scope="col" className="px-4 py-3">{t('areaCity')}</th><th scope="col" className="px-4 py-3">{t('status')}</th><th scope="col" className="px-4 py-3">{t('actions')}</th>

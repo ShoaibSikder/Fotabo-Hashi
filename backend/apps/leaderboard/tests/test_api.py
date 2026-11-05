@@ -28,7 +28,9 @@ def test_leaderboard_ranks_members_by_admin_recorded_donations():
     client.force_authenticate(user=user)
     response = client.get("/api/v1/leaderboard/")
     assert response.status_code == 200
-    assert response.data[0]["user_id"] == user.id
-    assert response.data[0]["donation_count"] == 2
-    assert response.data[0]["rank"] == 1
-    assert response.data[1]["donation_count"] == 1
+    page = response.data["data"]
+    assert page["count"] == 2
+    assert page["results"][0]["user_id"] == user.id
+    assert page["results"][0]["donation_count"] == 2
+    assert page["results"][0]["rank"] == 1
+    assert page["results"][1]["donation_count"] == 1

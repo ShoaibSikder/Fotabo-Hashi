@@ -79,7 +79,7 @@ export default function DonationReviewsPage() {
         </FilterMenu>
       </form>
       {busy ? <TableLoadingSkeleton columns={6} /> : rows.length ? <>
-        <div className="mt-4 overflow-x-auto rounded-xl border border-slate-100" role="region" aria-label={t('adminDonationReviews')} tabIndex="0">
+        <div className="mt-4 data-scroll-region data-table-scroll rounded-xl border border-slate-100" role="region" aria-label={t('adminDonationReviews')} tabIndex="0">
           <table className="w-full min-w-[980px] whitespace-nowrap text-left text-sm">
             <thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100">
               <th scope="col" className="px-3 py-3">{t('fullName')}</th><th scope="col" className="px-3 py-3">{t('bloodGroup')}</th><th scope="col" className="px-3 py-3">{t('phoneNumber')}</th><th scope="col" className="px-3 py-3">{t('reportedDonationCount')}</th><th scope="col" className="px-3 py-3">{t('approvedLeaderboardCount')}</th><th scope="col" className="px-3 py-3">{t('changeDirection')}</th><th scope="col" className="px-3 py-3">{t('status')}</th><th scope="col" className="px-3 py-3">{t('actions')}</th>

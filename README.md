@@ -7,7 +7,6 @@
 <p align="center"><strong>Together we save lives.</strong><br />A bilingual blood donation and community support platform.</p>
 
 <p align="center">
-  <a href="https://github.com/ShoaibSikder/Fotabo-Hashi/actions/workflows/ci.yml"><img src="https://github.com/ShoaibSikder/Fotabo-Hashi/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI status" /></a>
   <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white" alt="React 18" />
   <img src="https://img.shields.io/badge/Django-5.2-0C4B33?logo=django&logoColor=white" alt="Django 5.2" />
   <img src="https://img.shields.io/badge/Database-PostgreSQL-336791?logo=postgresql&logoColor=white" alt="PostgreSQL" />
@@ -149,9 +148,6 @@ The API is versioned under `/api/v1/`. Django settings are split into `base.py`,
 
 ```text
 Fotabo-Hashi/
-|-- .github/
-|   |-- dependabot.yml
-|   `-- workflows/ci.yml
 |-- backend/
 |   |-- api/v1/                 API routes and health endpoints
 |   |-- apps/
@@ -278,8 +274,6 @@ npm audit --audit-level=moderate
 npm run lint
 npm run build
 ```
-
-GitHub Actions runs the backend checks with PostgreSQL and Redis services and runs the frontend audit, lint, and production build. The branch-protection checks are `test` and `frontend`.
 
 ## Deployment
 

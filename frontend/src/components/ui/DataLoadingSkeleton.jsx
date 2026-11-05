@@ -4,7 +4,7 @@ const rows = [0, 1, 2, 3, 4];
 
 export function TableLoadingSkeleton({ columns = 5, rows: rowCount = 6 }) {
   return (
-    <div role="status" aria-label="Loading results" aria-live="polite" className="overflow-hidden rounded-xl border border-slate-100 bg-white">
+    <div role="status" aria-label="Loading results" aria-live="polite" className="data-scroll-region overflow-hidden rounded-xl border border-slate-100 bg-white">
       <div className="flex gap-4 border-b border-slate-100 bg-slate-50 px-4 py-3">
         {Array.from({ length: columns }, (_, index) => <Skeleton key={index} className="h-3 flex-1" />)}
       </div>
@@ -21,7 +21,7 @@ export function TableLoadingSkeleton({ columns = 5, rows: rowCount = 6 }) {
 
 export function CardGridLoadingSkeleton({ count = 4 }) {
   return (
-    <div role="status" aria-label="Loading results" aria-live="polite" className="grid gap-4 md:grid-cols-2">
+    <div role="status" aria-label="Loading results" aria-live="polite" className="data-scroll-region grid gap-4 md:grid-cols-2">
       {Array.from({ length: count }, (_, index) => (
         <div key={index} className="space-y-4 rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
           <div className="flex items-center gap-3"><Skeleton className="h-11 w-11 shrink-0 rounded-xl" /><div className="flex-1 space-y-2"><Skeleton className="h-4 w-2/3" /><Skeleton className="h-3 w-1/3" /></div><Skeleton className="h-6 w-16 rounded-full" /></div>
