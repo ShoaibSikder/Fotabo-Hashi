@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { CalendarDays, Check, Droplet, Plus, Search, Shield, Trash2, UserRound, X } from 'lucide-react';
+import { Ban, CalendarDays, Check, Droplet, Plus, Search, Shield, Trash2, UserRound, X } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
 import Input from '../../../components/ui/Input.jsx';
 import Select from '../../../components/ui/Select.jsx';
@@ -13,12 +13,14 @@ import { apiDelete, apiGet, apiPatch, apiPost } from '../../../services/apiClien
 import { API_ENDPOINTS } from '../../../services/endpointConfig.js';
 import { BLOOD_GROUPS } from '../../../utils/constants.js';
 import { useLang } from '../../../contexts/LanguageContext.jsx';
+import { useAuthCtx } from '../../../contexts/AuthContext.jsx';
 
 const emptyForm = { email: '', role: 'USER', is_active: true, name: '', phone: '', blood_group: '', location: '', is_available_for_donation: false };
 const newAccountForm = { email: '', role: 'USER', name: '', phone: '', blood_group: '', location: '' };
 
 export default function AdminUsersPage() {
   const { t } = useLang();
+  const { user: currentUser } = useAuthCtx();
   const [searchParams] = useSearchParams();
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
@@ -31,6 +33,7 @@ export default function AdminUsersPage() {
   const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [statusUpdatingId, setStatusUpdatingId] = useState(null);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
   const [creating, setCreating] = useState(false);
@@ -152,6 +155,31 @@ export default function AdminUsersPage() {
     }
   }
 
+  async function toggleUserActive(account) {
+    const isActive = !account.is_active;
+    const translationKey = isActive ? 'confirmReactivateAccount' : 'confirmDeactivateAccount';
+    if (!window.confirm(t(translationKey, { name: account.name || account.email }))) return;
+
+    setStatusUpdatingId(account.id);
+    setError('');
+    setNotice('');
+    try {
+      const updated = await apiPatch(API_ENDPOINTS.adminUserDetail(account.id), { is_active: isActive });
+      const noLongerMatchesStatusFilter = (active === 'true' && !updated.is_active)
+        || (active === 'false' && updated.is_active);
+      setRows((current) => noLongerMatchesStatusFilter
+        ? current.filter((row) => row.id !== updated.id)
+        : current.map((row) => row.id === updated.id ? updated : row));
+      if (noLongerMatchesStatusFilter) setCount((current) => Math.max(0, current - 1));
+      setSelected((current) => current?.id === updated.id ? updated : current);
+      setNotice(t(isActive ? 'accountReactivated' : 'accountDeactivated'));
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  }
+
   async function recordDonation(event) {
     event.preventDefault();
     if (!selected) return;
@@ -207,7 +235,7 @@ export default function AdminUsersPage() {
             </FilterMenu>
           </form>
           {loading ? <TableLoadingSkeleton columns={8} /> : rows.length ? <>
-            <div className="data-scroll-region data-table-scroll mt-4 block rounded-xl border border-slate-100" role="region" aria-label={t('peopleAndDonors')} tabIndex="0"><table className="w-full min-w-[1160px] whitespace-nowrap text-left text-sm"><thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100"><th scope="col" className="px-3 py-3">{t('fullName')}</th><th scope="col" className="px-3 py-3">{t('bloodGroup')}</th><th scope="col" className="px-3 py-3">{t('phoneNumber')}</th><th scope="col" className="px-3 py-3">{t('adminRole')}</th><th scope="col" className="px-3 py-3">{t('status')}</th><th scope="col" className="px-3 py-3">{t('donor')}</th><th scope="col" className="px-3 py-3">{t('approvedLeaderboardCount')}</th><th scope="col" className="px-3 py-3">{t('actions')}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/70 ${selected?.id === row.id ? 'bg-rose-50/70' : ''}`}><td className="px-3 py-3 font-bold text-slate-800">{row.name || t('communityDonor')}</td><td className="px-3 py-3 text-slate-600">{row.blood_group || '—'}</td><td className="px-3 py-3 text-slate-600">{row.phone || '—'}</td><td className="px-3 py-3"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{row.role === 'ADMIN' && <Shield size={12} />}{t(row.role === 'ADMIN' ? 'adminRole' : 'userRole')}</span></td><td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${row.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{t(row.is_active ? 'active' : 'disabled')}</span></td><td className="px-3 py-3 text-xs font-semibold text-slate-600">{t(row.is_available_for_donation ? 'available' : 'notSpecified')}</td><td className="px-3 py-3 text-xs font-extrabold text-brand">{row.donation_count || 0}</td><td className="px-3 py-3"><Button type="button" variant="secondary" onClick={() => selectUser(row)} className="!min-h-9 !rounded-lg !px-3">{t('viewDetails')}</Button></td></tr>)}</tbody></table></div>
+            <div className="data-scroll-region data-table-scroll mt-4 block rounded-xl border border-slate-100" role="region" aria-label={t('peopleAndDonors')} tabIndex="0"><table className="w-full min-w-[1160px] whitespace-nowrap text-left text-sm"><thead className="bg-slate-50 text-[10px] font-extrabold uppercase tracking-wide text-slate-500"><tr className="border-b border-slate-100"><th scope="col" className="px-3 py-3">{t('fullName')}</th><th scope="col" className="px-3 py-3">{t('bloodGroup')}</th><th scope="col" className="px-3 py-3">{t('phoneNumber')}</th><th scope="col" className="px-3 py-3">{t('adminRole')}</th><th scope="col" className="px-3 py-3">{t('status')}</th><th scope="col" className="px-3 py-3">{t('donor')}</th><th scope="col" className="px-3 py-3">{t('approvedLeaderboardCount')}</th><th scope="col" className="px-3 py-3">{t('actions')}</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id} className={`border-b border-slate-100 last:border-0 hover:bg-slate-50/70 ${selected?.id === row.id ? 'bg-rose-50/70' : ''}`}><td className="px-3 py-3 font-bold text-slate-800"><button type="button" onClick={() => selectUser(row)} className="cursor-pointer text-left text-brand-dark underline-offset-2 transition-colors hover:text-brand hover:underline focus-visible:rounded-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-brand" aria-label={`${t('viewDetails')}: ${row.name || t('communityDonor')}`}>{row.name || t('communityDonor')}</button></td><td className="px-3 py-3 text-slate-600">{row.blood_group || '—'}</td><td className="px-3 py-3 text-slate-600">{row.phone || '—'}</td><td className="px-3 py-3"><span className="inline-flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700">{row.role === 'ADMIN' && <Shield size={12} />}{t(row.role === 'ADMIN' ? 'adminRole' : 'userRole')}</span></td><td className="px-3 py-3"><span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${row.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>{t(row.is_active ? 'active' : 'disabled')}</span></td><td className="px-3 py-3 text-xs font-semibold text-slate-600">{t(row.is_available_for_donation ? 'available' : 'notSpecified')}</td><td className="px-3 py-3 text-xs font-extrabold text-brand">{row.donation_count || 0}</td><td className="px-3 py-3"><Button type="button" variant={row.is_active ? 'secondary' : 'primary'} disabled={statusUpdatingId === row.id || (row.role === 'ADMIN' && String(row.id) === String(currentUser?.id))} loading={statusUpdatingId === row.id} onClick={() => toggleUserActive(row)} className={`!min-h-9 !rounded-lg !px-3 ${row.is_active ? '!text-amber-800 hover:!bg-amber-50' : ''}`} aria-label={t(row.is_active ? 'deactivateAccount' : 'reactivateAccount')}>{row.is_active && <Ban size={14} />}{t(row.is_active ? 'deactivateAccount' : 'reactivateAccount')}</Button></td></tr>)}</tbody></table></div>
             <div className="mt-4"><Pagination page={page} count={count} onChange={setPage} /></div>
           </> : <div className="py-12 text-center"><UserRound className="mx-auto text-slate-300" size={28} /><p className="mt-3 text-sm font-bold text-slate-700">No accounts found</p><p className="mt-1 text-xs text-slate-500">Adjust the search or filters and try again.</p></div>}
         </Card>

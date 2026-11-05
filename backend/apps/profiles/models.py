@@ -23,7 +23,7 @@ class Profile(models.Model):
     phone = models.CharField(max_length=30, blank=True)
     blood_group = models.CharField(max_length=3, choices=BloodGroup.choices, blank=True)
     location = models.CharField(max_length=255, blank=True)
-    is_available_for_donation = models.BooleanField(default=False)
+    is_available_for_donation = models.BooleanField(default=True)
     self_reported_donation_count = models.PositiveIntegerField(default=0)
     approved_donation_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
