@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const { t } = useLang();
   const [profile, setProfile] = useState(null);
   const [requests, setRequests] = useState([]);
-  const [stats, setStats] = useState({ total: null, active: null, fulfilled: null });
+  const [stats, setStats] = useState({ total: null, active: null });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
 
@@ -34,7 +34,6 @@ export default function DashboardPage() {
       setStats({
         total: summary?.total ?? null,
         active: summary?.active ?? null,
-        fulfilled: summary?.fulfilled ?? null,
       });
     }).finally(() => alive && setLoading(false));
 
@@ -91,7 +90,7 @@ export default function DashboardPage() {
                 <Link key={request.id} to={`/requests/${request.id}`} className="flex items-center gap-3 py-3 first:pt-1 hover:bg-white/40">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-soft text-brand"><Droplet size={18} /></span>
                   <span className="min-w-0 flex-1"><span className="block truncate text-sm font-bold text-brand-dark">{request.blood_group} · {request.required_units} unit{request.required_units === 1 ? '' : 's'}</span><span className="mt-0.5 block truncate text-xs text-muted">{request.location}</span></span>
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-bold ${request.status === 'ACTIVE' ? 'bg-emerald-50 text-emerald-700' : request.status === 'FULFILLED' ? 'bg-blue-50 text-blue-700' : 'bg-slate-100 text-slate-600'}`}>{request.status}</span>
+                  <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold text-emerald-700">{request.status}</span>
                 </Link>
               ))}
             </div>
@@ -105,7 +104,6 @@ export default function DashboardPage() {
             <QuickAction to="/donors" icon={<Search size={17} />} label="Find a donor" />
             <QuickAction to="/profile" icon={<UserRound size={17} />} label="Update profile" />
           </div>
-          {stats.fulfilled > 0 && <p className="mt-4 text-xs font-semibold text-muted">Requests fulfilled: {stats.fulfilled}</p>}
         </Card>
       </div>
     </div>

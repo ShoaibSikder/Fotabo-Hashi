@@ -81,8 +81,8 @@ class TestBloodRequestAPI:
 
     def test_dashboard_summary_returns_counts_and_only_own_recent_requests(self):
         active_request = self.create_request()
-        fulfilled_request = self.create_request(status="FULFILLED")
-        cancelled_request = self.create_request(status="CANCELLED")
+        self.create_request(status="FULFILLED")
+        self.create_request(status="CANCELLED")
         other_request = self.create_request(
             requester=self.other_user,
             status="ACTIVE",
@@ -94,12 +94,7 @@ class TestBloodRequestAPI:
         summary = response.data["data"]
         assert summary["total"] == 3
         assert summary["active"] == 1
-        assert summary["fulfilled"] == 1
-        assert {row["id"] for row in summary["recent_requests"]} == {
-            active_request.id,
-            fulfilled_request.id,
-            cancelled_request.id,
-        }
+        assert {row["id"] for row in summary["recent_requests"]} == {active_request.id}
         assert other_request.id not in {row["id"] for row in summary["recent_requests"]}
 
     def test_user_can_view_request(self):

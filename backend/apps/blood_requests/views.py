@@ -35,6 +35,21 @@ class BloodRequestListCreateView(generics.ListCreateAPIView):
         queryset = get_blood_request_queryset()
         if self.request.query_params.get("mine", "").lower() == "true":
             queryset = queryset.filter(requester=self.request.user)
+            if self.request.user.role == "ADMIN":
+                return queryset
+            queryset = queryset.filter(status=BloodRequestStatus.ACTIVE)
+        else:
+            # Closed requests should disappear from donor discovery and the
+            # shared request feed as soon as their owner closes them.
+            queryset = queryset.filter(status=BloodRequestStatus.ACTIVE)
+        return queryset
+
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        # Status filters on this endpoint are limited to ACTIVE for ordinary
+        # accounts. Admins use the dedicated admin endpoint for all statuses.
+        if self.request.user.role != "ADMIN":
+            queryset = queryset.filter(status=BloodRequestStatus.ACTIVE)
         return queryset
 
     def perform_create(self, serializer):
@@ -64,11 +79,11 @@ class MyBloodRequestSummaryView(APIView):
         counts = own_requests.aggregate(
             total=Count("id"),
             active=Count("id", filter=Q(status=BloodRequestStatus.ACTIVE)),
-            fulfilled=Count("id", filter=Q(status=BloodRequestStatus.FULFILLED)),
         )
-        recent_requests = get_blood_request_queryset().filter(requester=request.user)[
-            :5
-        ]
+        recent_requests = get_blood_request_queryset().filter(
+            requester=request.user,
+            status=BloodRequestStatus.ACTIVE,
+        )[:5]
         return Response(
             {
                 "success": True,
@@ -89,7 +104,12 @@ class BloodRequestDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = BloodRequestSerializer
 
     def get_queryset(self):
-        return get_blood_request_queryset()
+        queryset = get_blood_request_queryset()
+        # Closed requests are visible to administrators only, including when
+        # someone tries to open a bookmarked or guessed detail URL.
+        if self.request.user.role == "ADMIN":
+            return queryset
+        return queryset.filter(status=BloodRequestStatus.ACTIVE)
 
     def perform_update(self, serializer):
         blood_request = self.get_object()
@@ -104,7 +124,11 @@ class BloodRequestDetailView(generics.RetrieveUpdateAPIView):
             create_notification(
                 recipient=blood_request.requester,
                 event_type=NotificationEvent.REQUEST_UPDATED,
-                action_url=f"/requests/{blood_request.pk}",
+                action_url=(
+                    f"/requests/{blood_request.pk}"
+                    if blood_request.status == BloodRequestStatus.ACTIVE
+                    else "/requests"
+                ),
                 payload={
                     "blood_group": blood_request.blood_group,
                     "status": blood_request.status,
@@ -124,7 +148,7 @@ class BloodRequestActionView(generics.GenericAPIView):
         responses=BloodRequestSerializer,
     )
     def post(self, request, pk):
-        blood_request = get_blood_request_queryset().filter(pk=pk).first()
+        blood_request = self.get_queryset().filter(pk=pk).first()
         if blood_request is None:
             raise NotFound("Blood request not found.")
         if blood_request.requester_id != request.user.id:
@@ -142,6 +166,12 @@ class BloodRequestActionView(generics.GenericAPIView):
         return Response(
             BloodRequestSerializer(blood_request, context={"request": request}).data
         )
+
+    def get_queryset(self):
+        queryset = get_blood_request_queryset()
+        if self.request.user.role == "ADMIN":
+            return queryset
+        return queryset.filter(status=BloodRequestStatus.ACTIVE)
 
 
 @extend_schema(tags=["Blood Requests"], responses=BloodRequestSerializer)

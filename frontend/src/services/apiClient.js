@@ -74,7 +74,7 @@ function refreshSessionOnce(timeoutMs) {
 
 const STATUS_MESSAGES = {
   400: 'Please review the information and try again.',
-  401: 'Your session has expired. Please sign in again.',
+  401: 'Please sign in to continue.',
   403: 'You do not have permission to do that.',
   404: 'The requested information could not be found.',
   408: 'The request took too long. Please try again.',
@@ -117,9 +117,18 @@ function apiErrorFromResponse(body, response) {
   const error = body?.error || {};
   const details = error.details ?? body?.details ?? {};
   const status = response.status;
-  const baseMessage = status >= 500
-    ? STATUS_MESSAGES[status] || 'A server error occurred. Please try again shortly.'
-    : firstMessage(details) || error.message || body?.detail || STATUS_MESSAGES[status] || 'The request could not be completed.';
+  let baseMessage;
+  if (status >= 500) {
+    baseMessage = STATUS_MESSAGES[status] || 'A server error occurred. Please try again shortly.';
+  } else if (error.code === 'AUTHENTICATION_REQUIRED') {
+    baseMessage = STATUS_MESSAGES[401];
+  } else {
+    baseMessage = firstMessage(details)
+      || error.message
+      || body?.detail
+      || STATUS_MESSAGES[status]
+      || 'The request could not be completed.';
+  }
   const requestId = error.request_id || response.headers.get('X-Request-ID') || '';
   const message = status >= 500 && requestId
     ? `${baseMessage} Reference ID: ${requestId}`

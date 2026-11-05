@@ -16,11 +16,12 @@ def main():
         project_python = project_root / ".venv" / "bin" / "python"
 
     # Make `python manage.py ...` use this project's dependencies even when
-    # the shell's `python` points to the system interpreter.
-    if (
-        project_python.is_file()
-        and project_python.resolve() != Path(sys.executable).resolve()
-    ):
+    # the shell's `python` points to the system interpreter. On Windows,
+    # sys.executable inside a venv can resolve to the base Python executable,
+    # so compare sys.prefix with the project venv instead of comparing exe paths.
+    project_venv = project_python.parent.parent
+    using_project_venv = Path(sys.prefix).resolve() == project_venv.resolve()
+    if project_python.is_file() and not using_project_venv:
         raise SystemExit(
             subprocess.call(
                 [str(project_python), str(Path(__file__).resolve()), *sys.argv[1:]]

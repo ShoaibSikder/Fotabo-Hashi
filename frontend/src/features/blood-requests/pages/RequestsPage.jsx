@@ -21,7 +21,6 @@ export default function RequestsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [appliedSearch, setAppliedSearch] = useState('');
   const [bloodGroup, setBloodGroup] = useState('');
-  const [status, setStatus] = useState('');
   const [page, setPage] = useState(1);
   const [rows, setRows] = useState([]);
   const [count, setCount] = useState(0);
@@ -34,7 +33,8 @@ export default function RequestsPage() {
     const query = new URLSearchParams({ page: String(page), page_size: String(PAGE_SIZE) });
     if (appliedSearch) query.set('search', appliedSearch);
     if (bloodGroup) query.set('blood_group', bloodGroup);
-    if (status) query.set('status', status);
+    // Shared request discovery must never expose closed requests.
+    query.set('status', 'ACTIVE');
     try {
       const data = await apiGet(`${API_ENDPOINTS.requests}?${query}`);
       setRows(Array.isArray(data) ? data : data?.results || []);
@@ -46,7 +46,7 @@ export default function RequestsPage() {
     } finally {
       setBusy(false);
     }
-  }, [appliedSearch, bloodGroup, page, status]);
+  }, [appliedSearch, bloodGroup, page]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -61,9 +61,8 @@ export default function RequestsPage() {
     <Card className="!p-4 sm:!p-5"><form className="flex w-full items-center gap-2" onSubmit={submitFilters}>
       <div className="relative min-w-0 flex-1"><Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17} /><input id="request-search" aria-label={t('requestSearchLabel')} className="min-h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-3 text-sm text-slate-800 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10" placeholder={t('searchRequestsPlaceholder')} value={searchTerm} onChange={(event) => setSearchTerm(event.target.value)} /></div>
       <Button type="submit" variant="secondary" aria-label={t('search')} className="!min-h-11 !w-11 !shrink-0 !justify-center !rounded-xl !px-0 sm:!w-auto sm:!px-4"><Search size={17} aria-hidden="true" /><span className="sr-only sm:not-sr-only">{t('search')}</span></Button>
-      <FilterMenu activeCount={[bloodGroup, status].filter(Boolean).length} onClear={() => { setBloodGroup(''); setStatus(''); setPage(1); }}>
+      <FilterMenu activeCount={[bloodGroup].filter(Boolean).length} onClear={() => { setBloodGroup(''); setPage(1); }}>
         <Select id="request-filter-group" label={t('bloodGroup')} value={bloodGroup} onChange={(event) => { setBloodGroup(event.target.value); setPage(1); }}><option value="">{t('allBloodGroups')}</option>{BLOOD_GROUPS.map((group) => <option key={group}>{group}</option>)}</Select>
-        <Select id="request-filter-status" label={t('status')} value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }}><option value="">{t('allStatuses')}</option><option value="ACTIVE">{t('active')}</option><option value="FULFILLED">{t('fulfilled')}</option><option value="CANCELLED">{t('cancelled')}</option></Select>
       </FilterMenu>
     </form></Card>
     {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-800">{error}</div>}

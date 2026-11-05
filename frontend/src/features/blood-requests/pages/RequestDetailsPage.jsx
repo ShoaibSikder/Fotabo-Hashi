@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, CalendarDays, Check, Droplet, MapPin, Pencil, Save, X } from 'lucide-react';
 import Card from '../../../components/ui/Card.jsx';
 import Badge from '../../../components/ui/Badge.jsx';
@@ -16,6 +16,7 @@ import { useLang } from '../../../contexts/LanguageContext.jsx';
 export default function RequestDetailsPage() {
   const { t } = useLang();
   const { id } = useParams();
+  const navigate = useNavigate();
   const [item, setItem] = useState(null);
   const [form, setForm] = useState({});
   const [error, setError] = useState('');
@@ -72,7 +73,8 @@ export default function RequestDetailsPage() {
       const endpoint = name === 'cancel'
         ? API_ENDPOINTS.requestCancel(id)
         : API_ENDPOINTS.requestFulfill(id);
-      setItem(await apiPost(endpoint, {}));
+      await apiPost(endpoint, {});
+      navigate('/requests', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
